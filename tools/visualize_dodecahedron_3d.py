@@ -1,7 +1,11 @@
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 # visualize_dodecahedron.py
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from dodecahedron_model import DodecahedronWithMarkers
+from aruco_pose.models.dodecahedron_model import DodecahedronWithMarkers
 import numpy as np
 import cv2
 

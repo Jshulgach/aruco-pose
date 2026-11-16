@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Documentation
 
 Comprehensive documentation for the ArUco Pose Estimation Toolkit.

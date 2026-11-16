@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Project Organization
 
 Clean, logical structure for the ArUco Pose Estimation package.
@@ -6,7 +10,7 @@ Clean, logical structure for the ArUco Pose Estimation package.
 
 ```
 ArUco_Pose_Estimation/
-├── src/                          # Source code (all utilities here!)
+├── aruco_pose/                          # Source code (all utilities here!)
 │   ├── core/                     # Core detection functionality
 │   │   └── detector.py          # UnifiedArucoDetector
 │   ├── models/                   # 3D models (dodecahedron, etc.)
@@ -46,12 +50,12 @@ ArUco_Pose_Estimation/
 
 ## 🎯 Design Principles
 
-### 1. **src/ contains ALL utilities**
-No more scattered utility folders. Everything is in `src/`:
-- Core functionality → `src/core/`
-- Tracking algorithms → `src/tracking/`
-- Utility functions → `src/utils/`
-- 3D models → `src/models/`
+### 1. **aruco_pose/ contains ALL utilities**
+No more scattered utility folders. Everything is in `aruco_pose/`:
+- Core functionality → `aruco_pose/core/`
+- Tracking algorithms → `aruco_pose/tracking/`
+- Utility functions → `aruco_pose/utils/`
+- 3D models → `aruco_pose/models/`
 
 ### 2. **examples/ for learning**
 Organized by complexity (01→05) and use case:
@@ -73,26 +77,26 @@ Standard Python testing structure:
 ## ✅ What Changed
 
 ### Removed Directories
-- ❌ `utilities/` - Moved to `src/tracking/`
-- ❌ `scripts/` - Consolidated into `tools/` and `src/utils/`
+- ❌ `utilities/` - Moved to `aruco_pose/tracking/`
+- ❌ `scripts/` - Consolidated into `tools/` and `aruco_pose/utils/`
 
 ### Consolidated Files
-- `utilities/optical_flow.py` → `src/tracking/optical_flow.py`
-- `utilities/dense_refinement.py` → `src/tracking/dense_refinement.py`
-- `scripts/generate_markers.py` → `src/utils/marker_generator.py`
+- `utilities/optical_flow.py` → `aruco_pose/tracking/optical_flow.py`
+- `utilities/dense_refinement.py` → `aruco_pose/tracking/dense_refinement.py`
+- `scripts/generate_markers.py` → `aruco_pose/utils/marker_generator.py`
 - `scripts/aruco_cli.py` → (removed, duplicate of `tools/cli.py`)
 
 ### Updated Imports
 All examples now use:
 ```python
-from src.tracking import OpticalFlowTracker, DenseRefiner
-from src.utils.marker_generator import generate_aruco_marker
-from src.utils import ProjectConfig, setup_logger
+from aruco_pose.tracking import OpticalFlowTracker, DenseRefiner
+from aruco_pose.utils.marker_generator import generate_aruco_marker
+from aruco_pose.utils import ProjectConfig, setup_logger
 ```
 
 ## 📦 Package Installation
 
-Install in development mode to use `src/` modules anywhere:
+Install in development mode to use `aruco_pose/` modules anywhere:
 
 ```bash
 pip install -e .
@@ -100,17 +104,17 @@ pip install -e .
 
 Now you can import from anywhere:
 ```python
-from src.core import UnifiedArucoDetector
-from src.tracking import OpticalFlowTracker
-from src.utils import ProjectConfig
+from aruco_pose.core import UnifiedArucoDetector
+from aruco_pose.tracking import OpticalFlowTracker
+from aruco_pose.utils import ProjectConfig
 ```
 
 ## 🚀 Usage Patterns
 
 ### Using Core Utilities
 ```python
-from src.core import UnifiedArucoDetector
-from src.utils import ProjectConfig, setup_logger
+from aruco_pose.core import UnifiedArucoDetector
+from aruco_pose.utils import ProjectConfig, setup_logger
 
 config = ProjectConfig.from_yaml("config.yaml")
 detector = UnifiedArucoDetector(config.aruco.dictionary)
@@ -119,7 +123,7 @@ logger = setup_logger("my_app")
 
 ### Using Tracking Utilities
 ```python
-from src.tracking import OpticalFlowTracker, DenseRefiner
+from aruco_pose.tracking import OpticalFlowTracker, DenseRefiner
 
 tracker = OpticalFlowTracker()
 refiner = DenseRefiner()
@@ -128,13 +132,13 @@ refiner = DenseRefiner()
 ### Using CLI Tools
 ```bash
 # Generate markers
-python tools/cli.py generate 0 1 2 --size 200
+python -m aruco_pose generate 0 1 2 --size 200
 
 # Calibrate camera
-python tools/cli.py calibrate --rows 9 --cols 6
+python -m aruco_pose calibrate --rows 9 --cols 6
 
 # Track markers
-python tools/cli.py track --config config.yaml
+python -m aruco_pose track --config config.yaml
 ```
 
 ### Running Examples
@@ -156,13 +160,13 @@ python optical_flow.py
 
 | I want to... | Look in... |
 |--------------|------------|
-| Detect ArUco markers | `src/core/detector.py` |
-| Configure the system | `src/utils/config.py` |
-| Log messages | `src/utils/logger.py` |
-| Visualize results | `src/utils/visualization.py` |
-| Track with optical flow | `src/tracking/optical_flow.py` |
-| Refine poses | `src/tracking/dense_refinement.py` |
-| Generate markers | `src/utils/marker_generator.py` |
+| Detect ArUco markers | `aruco_pose/core/detector.py` |
+| Configure the system | `aruco_pose/utils/config.py` |
+| Log messages | `aruco_pose/utils/logger.py` |
+| Visualize results | `aruco_pose/utils/visualization.py` |
+| Track with optical flow | `aruco_pose/tracking/optical_flow.py` |
+| Refine poses | `aruco_pose/tracking/dense_refinement.py` |
+| Generate markers | `aruco_pose/utils/marker_generator.py` |
 | Use CLI interface | `tools/cli.py` |
 | Learn basics | `examples/01_basic/` |
 | Learn pose estimation | `examples/02_single_marker/` |
@@ -173,11 +177,11 @@ python optical_flow.py
 
 ### Adding New Features
 
-1. **Utility function** → Add to appropriate `src/` module
-   - Detection/dictionary related → `src/core/`
-   - Tracking algorithm → `src/tracking/`
-   - Helper function → `src/utils/`
-   - 3D model → `src/models/`
+1. **Utility function** → Add to appropriate `aruco_pose/` module
+   - Detection/dictionary related → `aruco_pose/core/`
+   - Tracking algorithm → `aruco_pose/tracking/`
+   - Helper function → `aruco_pose/utils/`
+   - 3D model → `aruco_pose/models/`
 
 2. **CLI command** → Add to `tools/cli.py`
 
@@ -188,12 +192,12 @@ python optical_flow.py
 ### No More Confusion!
 
 Before:
-- "Should this go in `utilities/` or `src/utils/`?"
+- "Should this go in `utilities/` or `aruco_pose/utils/`?"
 - "Is this a `script/` or `tools/` or `examples/`?"
 - "Where do I find the optical flow code?"
 
 After:
-- All source code → `src/`
+- All source code → `aruco_pose/`
 - All examples → `examples/`
 - All CLI tools → `tools/`
 - All tests → `tests/`
@@ -201,14 +205,14 @@ After:
 ## 🎓 Benefits
 
 1. **Clear separation of concerns**
-   - Source code in `src/`
+   - Source code in `aruco_pose/`
    - Examples in `examples/`
    - Tools in `tools/`
    - Tests in `tests/`
 
 2. **Easy to find things**
-   - Want utility? Check `src/utils/`
-   - Want tracking algorithm? Check `src/tracking/`
+   - Want utility? Check `aruco_pose/utils/`
+   - Want tracking algorithm? Check `aruco_pose/tracking/`
    - Want example? Check `examples/`
 
 3. **Standard Python structure**
@@ -233,8 +237,8 @@ from scripts.generate_markers import generate_aruco_marker
 
 ### New imports:
 ```python
-from src.tracking import OpticalFlowTracker
-from src.utils.marker_generator import generate_aruco_marker
+from aruco_pose.tracking import OpticalFlowTracker
+from aruco_pose.utils.marker_generator import generate_aruco_marker
 ```
 
 All examples have been updated to use the new structure!

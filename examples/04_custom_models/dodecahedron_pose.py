@@ -5,13 +5,13 @@ import numpy as np
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.models.dodecahedron_model import CleanDodecahedronModel, DodecahedronWithMarkers
-from src.utils import legacy_utils as utils
+from aruco_pose.models.dodecahedron_model import CleanDodecahedronModel, DodecahedronWithMarkers
+from aruco_pose.utils import legacy_utils as utils
 from scipy.optimize import least_squares
 
-from gpt_aruco_pose_estimator import ArucoPoseEstimatorFromModel
-from gpt_pose_refiner import PoseRefiner
-from gpt_predictive_filter import PredictivePoseFilter
+from aruco_pose.models.aruco_pose_estimator import ArucoPoseEstimatorFromModel
+from aruco_pose.tracking.pose_refiner import PoseRefiner
+from aruco_pose.tracking.predictive_filter import PredictivePoseFilter
 
 DEBUG = True
 CAMERA_ID = 0  # USB camera ID

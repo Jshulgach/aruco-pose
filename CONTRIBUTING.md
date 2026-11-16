@@ -28,10 +28,10 @@ Thank you for considering contributing to this project!
 - Keep functions focused and modular
 
 ### Project Structure
-- **Core functionality** → `src/core/`
-- **3D models** → `src/models/`
-- **Tracking algorithms** → `src/tracking/`
-- **Utilities** → `src/utils/`
+- **Core functionality** → `aruco_pose/core/`
+- **3D models** → `aruco_pose/models/`
+- **Tracking algorithms** → `aruco_pose/tracking/`
+- **Utilities** → `aruco_pose/utils/`
 - **Examples** → `examples/` (organized by complexity)
 - **CLI tools** → `tools/`
 - **Tests** → `tests/`

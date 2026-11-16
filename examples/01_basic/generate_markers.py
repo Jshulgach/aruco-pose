@@ -1,18 +1,18 @@
 """
-Simple wrapper for marker generation - demonstrates using src.utils.marker_generator.
+Simple wrapper for marker generation - demonstrates using aruco_pose.utils.marker_generator.
 
 For CLI usage, you can also use:
-    python ../../tools/cli.py generate 0 1 2 --size 200
+    python -m aruco_pose generate 0 1 2 --size 200
 """
 
 import sys
 from pathlib import Path
 
-# Add src to path
+# Add the repository root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.utils.marker_generator import generate_aruco_marker, generate_marker_sheet
-from src.utils.logger import setup_logger
+from aruco_pose.utils.marker_generator import generate_aruco_marker, generate_marker_sheet
+from aruco_pose.utils.logger import setup_logger
 
 logger = setup_logger("generate_markers_example")
 

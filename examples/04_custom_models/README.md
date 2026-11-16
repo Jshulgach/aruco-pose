@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Custom 3D Models
 
 This directory contains examples for tracking custom 3D shapes with ArUco markers, including the advanced dodecahedron tracking system.

@@ -1,92 +1,57 @@
-import cv2
+"""Dodecahedron example using the shared robust pose API and CSV semantics."""
+
+import argparse
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
 import numpy as np
-from gpt_aruco_pose_estimator import ArucoPoseEstimator
-from gpt_pose_refiner import PoseRefiner
-from gpt_predictive_filter import PredictivePoseFilter
-from gpt_draw_overlay import draw_dodecahedron
-from dodecahedron_model import CleanDodecahedronModel
+from examples.pose_api_demo import run_tracker
+from aruco_pose.models.aruco_pose_estimator import ArucoPoseEstimatorFromJSON
+from aruco_pose.models.dodecahedron_model import CleanDodecahedronModel
+from aruco_pose.pose import TrackerConfig
+from aruco_pose.utils.dodecahedron_overlay import draw_dodecahedron
+
 
 def main():
-    # === Load camera intrinsics ===
-    K = np.load("camera_intrinsics.npy")
-    D = np.load("camera_distortion.npy")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", default="0")
+    parser.add_argument("--k-matrix", type=Path, default=ROOT / "camera_intrinsics.npy")
+    parser.add_argument("--d-coeff", type=Path, default=ROOT / "camera_distortion.npy")
+    parser.add_argument(
+        "--model", type=Path, default=ROOT / "config/dodecahedron_with_markers.json"
+    )
+    parser.add_argument(
+        "--marker-size", type=float, default=0.015, help="Printed square side in meters"
+    )
+    parser.add_argument("--min-markers", type=int, default=2)
+    parser.add_argument(
+        "--csv", type=Path, default=ROOT / "output/dodecahedron_poses.csv"
+    )
+    parser.add_argument("--no-preview", action="store_true")
+    args = parser.parse_args()
+    matrix, distortion = np.load(args.k_matrix), np.load(args.d_coeff)
+    estimator = ArucoPoseEstimatorFromJSON(
+        matrix,
+        distortion,
+        args.marker_size,
+        args.model,
+        config=TrackerConfig(min_markers=args.min_markers),
+    )
+    data = json.loads(args.model.read_text(encoding="utf-8"))
+    model = CleanDodecahedronModel(edge_length=data["edge_length"])
 
-    # === Set parameters ===
-    marker_size = 0.015  # in meters
-    model_path = "dodecahedron_with_markers.json"
-    #video_path = "WIN_20250404_11_11_34_Pro.mp4"
+    def overlay(frame, pose):
+        draw_dodecahedron(frame, pose.rvec, pose.tvec, model, matrix, distortion)
 
-    # === Initialize estimator ===
-    estimator = ArucoPoseEstimator(K, D, marker_size, model_path)
-    predictor = PredictivePoseFilter(alpha=0.5)
-    refiner = PoseRefiner(K, D)
-    model = CleanDodecahedronModel(edge_length=0.025)
+    count = run_tracker(
+        estimator.tracker, args.source, args.csv, not args.no_preview, overlay
+    )
+    print(f"Wrote {count} shared pose rows to {args.csv}")
 
-    #cap = cv2.VideoCapture(video_path)
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print("Failed to open video.")
-        return
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        corners, ids = estimator.detect(frame)
-
-        # Draw detected markers
-        #if ids is not None:
-        #    cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-
-        rvec, tvec, used_ids = estimator.estimate_pose(corners, ids)
-
-        rvec_ref = None
-        tvec_ref = None
-
-        if rvec is not None:
-            # Reconstruct obj_pts and img_pts from matched markers
-            obj_pts = []
-            img_pts = []
-            if ids is not None:
-                for i, marker_id in enumerate(ids.flatten()):
-                    if marker_id in used_ids and marker_id in estimator.extrinsics:
-                        r_local, t_local = estimator.extrinsics[marker_id]
-                        size = marker_size / 2
-                        obj = np.array([
-                            [-size, size, 0],
-                            [size, size, 0],
-                            [size, -size, 0],
-                            [-size, -size, 0]
-                        ], dtype=np.float32)
-                        R, _ = cv2.Rodrigues(r_local)
-                        obj_world = (R @ obj.T).T + t_local
-                        obj_pts.extend(obj_world)
-                        img_pts.extend(corners[i][0])
-
-            if len(obj_pts) >= 4:
-                rvec_ref, tvec_ref, _ = refiner.refine_pose(
-                    np.array(obj_pts), np.array(img_pts), rvec, tvec)
-            else:
-                rvec_ref, tvec_ref = rvec, tvec
-        else:
-            rvec_ref, tvec_ref = predictor.predict()
-
-        predictor.update(rvec_ref, tvec_ref)
-
-        # Draw coordinate frame if pose is valid
-        if rvec is not None:
-            draw_dodecahedron(frame, rvec_ref, tvec_ref, model, K, D)
-            cv2.drawFrameAxes(frame, K, D, rvec, tvec, 0.03)
-            cv2.putText(frame, f"Pose from IDs: {used_ids}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6, (255, 0, 0), 2)
-
-        cv2.imshow("Dodecahedron Tracking", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()

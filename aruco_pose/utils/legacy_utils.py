@@ -57,7 +57,7 @@ def save_frames_single_camera(calib, visualize=False):
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
     cooldown = cooldown_time
-    start = False
+    start = not visualize
     saved_count = 0
 
     while saved_count < frames_to_save:
@@ -98,7 +98,7 @@ def calibrate_single_camera(calib, visualize=False):
     pattern0 = f"{calib['camera0']}*.png"
     images = sorted(glob.glob(f"{calib['img_dir']}/{pattern0}"))
     if not images:
-        raise FileNotFoundError(f"No images found in {img_dir}")
+        raise FileNotFoundError(f"No images found in {calib['img_dir']}")
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     rows = calib['checkerboard_row_vertices']

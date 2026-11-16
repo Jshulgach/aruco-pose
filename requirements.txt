@@ -1,9 +1,8 @@
 # ArUco Pose Estimation - Core Dependencies
 
 # Core libraries
-numpy>=1.20.0
-opencv-python>=4.6.0
-opencv-contrib-python>=4.6.0
+numpy>=1.24,<3
+opencv-contrib-python>=4.8,<5
 pyyaml>=5.4
 packaging>=20.0
 

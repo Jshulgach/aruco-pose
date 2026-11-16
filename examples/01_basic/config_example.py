@@ -11,11 +11,11 @@ This example shows how to:
 import sys
 from pathlib import Path
 
-# Add src to path
+# Add the repository root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.config import ProjectConfig, CameraConfig, CalibrationConfig, ArucoConfig
-from src.utils.logger import setup_logger
+from aruco_pose.utils.config import ProjectConfig, CameraConfig, CalibrationConfig, ArucoConfig
+from aruco_pose.utils.logger import setup_logger
 
 logger = setup_logger("config_example", level=20)
 

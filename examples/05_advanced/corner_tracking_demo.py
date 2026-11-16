@@ -4,8 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.models.dodecahedron_model import DodecahedronWithMarkers
-from src.utils import legacy_utils as utils
+from aruco_pose.models.dodecahedron_model import DodecahedronWithMarkers
+from aruco_pose.utils import legacy_utils as utils
 from scipy.optimize import least_squares
 
 CAMERA_ID = 0  # USB camera ID

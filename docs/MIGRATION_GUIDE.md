@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Migration Guide: v1.0 → v2.0
 
 This guide helps you migrate from the old ArUco_Pose_Estimation structure to the new v2.0 organized package.
@@ -7,7 +11,7 @@ This guide helps you migrate from the old ArUco_Pose_Estimation structure to the
 ### Structure Changes
 ```
 OLD (v1.0):                      NEW (v2.0):
-├── utils.py                     ├── src/
+├── utils.py                     ├── aruco_pose/
 ├── calibrate.py                 │   ├── core/
 ├── aruco_main_tracker.py        │   │   ├── detector.py
 ├── aruco_pose_pipeline.py       │   │   ├── calibration.py
@@ -50,11 +54,11 @@ from aruco_pose_pipeline import ArucoPoseEstimator
 
 #### NEW:
 ```python
-from src.core.detector import UnifiedArucoDetector, ARUCO_DICT
-from src.models.dodecahedron import CleanDodecahedronModel
-from src.core.pose_estimator import MultiMarkerPoseEstimator
-from src.utils.visualization import ArucoVisualizer
-from src.utils.config import ProjectConfig
+from aruco_pose.core.detector import UnifiedArucoDetector, ARUCO_DICT
+from aruco_pose.models.dodecahedron import CleanDodecahedronModel
+from aruco_pose.core.pose_estimator import MultiMarkerPoseEstimator
+from aruco_pose.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.config import ProjectConfig
 ```
 
 ### 3. Update Configuration Files
@@ -88,7 +92,7 @@ aruco:
 
 Or use automatic conversion:
 ```python
-from src.utils.config import ProjectConfig
+from aruco_pose.utils.config import ProjectConfig
 
 # Load old format
 config = ProjectConfig.from_legacy_yaml("config.yaml")
@@ -114,7 +118,7 @@ else:
 #### NEW:
 ```python
 # Automatic version handling
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 
 detector = UnifiedArucoDetector("DICT_5X5_100")
 corners, ids, rejected = detector.detect(image)
@@ -150,7 +154,7 @@ cv2.drawFrameAxes(frame, K, D, rvec, tvec, 0.05)
 
 #### NEW:
 ```python
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.visualization import ArucoVisualizer
 
 viz = ArucoVisualizer(K, D)
 frame = viz.draw_markers(frame, corners, ids, draw_axes=True, marker_size=0.05)
@@ -161,7 +165,7 @@ frame = viz.draw_pose_info(frame, rvec, tvec)
 
 #### NEW Feature:
 ```python
-from src.utils.performance import PerformanceMonitor
+from aruco_pose.utils.performance import PerformanceMonitor
 
 monitor = PerformanceMonitor()
 
@@ -183,7 +187,7 @@ while True:
 
 #### NEW Feature:
 ```python
-from src.utils.io import PoseRecorder
+from aruco_pose.utils.io import PoseRecorder
 
 recorder = PoseRecorder("poses.json")
 
@@ -209,7 +213,7 @@ arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT["DICT_5X5_100"])
 
 **NEW:**
 ```python
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 
 detector = UnifiedArucoDetector("DICT_5X5_100")
 corners, ids, rejected = detector.detect(frame)
@@ -228,8 +232,8 @@ frame, markers = pose_estimation_single_camera(
 
 **NEW:**
 ```python
-from src.core.detector import UnifiedArucoDetector
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.core.detector import UnifiedArucoDetector
+from aruco_pose.utils.visualization import ArucoVisualizer
 
 detector = UnifiedArucoDetector("DICT_5X5_100")
 viz = ArucoVisualizer(K, D)
@@ -256,9 +260,9 @@ estimator = ArucoPoseEstimator(K, D, tag_data_path="aruco_group.json")
 **NEW:**
 ```python
 # Keep using your existing files - they're still compatible!
-# Or move them to src/models/ for better organization
+# Or move them to aruco_pose/models/ for better organization
 
-from src.models.dodecahedron import CleanDodecahedronModel
+from aruco_pose.models.dodecahedron import CleanDodecahedronModel
 from aruco_pose_pipeline import ArucoPoseEstimator  # Still works
 
 model = CleanDodecahedronModel(edge_length=0.025)
@@ -301,8 +305,8 @@ The old `utils.py`, `calibrate.py`, and other files are **still functional**. Yo
 from utils import pose_estimation_single_camera
 
 # Add new features
-from src.utils.performance import PerformanceMonitor
-from src.utils.logger import setup_logger
+from aruco_pose.utils.performance import PerformanceMonitor
+from aruco_pose.utils.logger import setup_logger
 
 logger = setup_logger("my_tracker")
 monitor = PerformanceMonitor()
@@ -345,7 +349,7 @@ If you encounter issues:
 ## Summary
 
 ✅ **What Changed:**
-- Better code organization (src/ structure)
+- Better code organization (aruco_pose/ structure)
 - Unified detector for all OpenCV versions
 - Professional visualization tools
 - Configuration management with validation

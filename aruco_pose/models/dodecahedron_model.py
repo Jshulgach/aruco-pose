@@ -4,6 +4,15 @@ import numpy as np
 from scipy.spatial import ConvexHull
 
 
+def _scale_to_edge_length(vertices, edge_length):
+    """Scale canonical vertices by their shortest nonzero separation (an edge)."""
+    if not np.isfinite(edge_length) or edge_length <= 0:
+        raise ValueError("edge_length must be finite and positive (in meters)")
+    distances = np.linalg.norm(vertices[:, None, :] - vertices[None, :, :], axis=2)
+    shortest_edge = distances[np.triu_indices(len(vertices), k=1)].min()
+    return vertices * (edge_length / shortest_edge)
+
+
 class CleanDodecahedronModel:
     def __init__(self, edge_length=0.01):
         self.edge_length = edge_length
@@ -42,16 +51,7 @@ class CleanDodecahedronModel:
         ]]
 
         points = np.array(points)
-        # Normalize scale to match desired edge length
-        def compute_edge_length(vs):
-            for i in range(len(vs)):
-                for j in range(i + 1, len(vs)):
-                    d = np.linalg.norm(vs[i] - vs[j])
-                    if d > 0.01:
-                        return d
-
-        scale = self.edge_length / compute_edge_length(points)
-        return points * scale
+        return _scale_to_edge_length(points, self.edge_length)
 
     def _compute_triangle_faces(self):
         hull = ConvexHull(self.vertices)
@@ -160,13 +160,7 @@ class DodecahedronWithMarkers:
             ( b,  phi, 0), ( b, -phi, 0), (-b,  phi, 0), (-b, -phi, 0),
             ( phi, 0,  b), ( phi, 0, -b), (-phi, 0,  b), (-phi, 0, -b)
         ])
-        def find_scale(vs):
-            for i in range(len(vs)):
-                for j in range(i + 1, len(vs)):
-                    d = np.linalg.norm(vs[i] - vs[j])
-                    if d > 0.01:
-                        return self.edge_length / d
-        return base * find_scale(base)
+        return _scale_to_edge_length(base, self.edge_length)
 
     def _rotation_matrix_z(self, degrees):
         rad = np.deg2rad(degrees)

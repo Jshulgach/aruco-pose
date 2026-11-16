@@ -1,0 +1,29 @@
+{
+  "image_width": 640,
+  "image_height": 480,
+  "camera_matrix": [
+    [
+      700.0,
+      0.0,
+      320.0
+    ],
+    [
+      0.0,
+      700.0,
+      240.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "distortion_coefficients": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "synthetic": true
+}

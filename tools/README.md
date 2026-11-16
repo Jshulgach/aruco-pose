@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Tools
 
 Command-line utilities and helper scripts for ArUco pose estimation.
@@ -466,7 +470,7 @@ def my_visualization(data):
 Import CLI functions in your own scripts:
 
 ```python
-from tools.cli import calibrate_camera, track_markers
+from aruco_pose.cli import calibrate_camera, track_markers
 
 # Programmatic use
 calibrate_camera(

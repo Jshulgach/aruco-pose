@@ -13,13 +13,13 @@ import numpy as np
 import sys
 from pathlib import Path
 
-# Add src to path
+# Add the repository root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.core.detector import UnifiedArucoDetector
-from src.utils.visualization import ArucoVisualizer
-from src.utils.performance import PerformanceMonitor
-from src.utils.logger import setup_logger
+from aruco_pose.core.detector import UnifiedArucoDetector
+from aruco_pose.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.performance import PerformanceMonitor
+from aruco_pose.utils.logger import setup_logger
 
 # Setup logger
 logger = setup_logger("pose_estimation", level=20)

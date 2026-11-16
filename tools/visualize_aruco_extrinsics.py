@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import cv2
 import time
@@ -264,7 +265,7 @@ def plot_dodecahedron_with_checkerboards(faces, grid_size=4, square_size=0.01):
 #plot_marker_frames(marker_extrinsics)
 
 # Load and plot the combined data
-faces_data = load_dodecahedron_with_markers("dodecahedron_with_markers.json")
+faces_data = load_dodecahedron_with_markers(Path(__file__).resolve().parents[1] / "config" / "dodecahedron_with_markers.json")
 #plot_dodecahedron_with_extrinsics(faces_data, axis_len=0.005)
 #plot_dodecahedron_with_textured_markers(faces_data, axis_len=0.005)
 plot_dodecahedron_with_checkerboards(faces_data, grid_size=5, square_size=0.002)

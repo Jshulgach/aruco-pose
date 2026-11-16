@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Single Marker Pose Estimation
 
 This directory contains examples for estimating the 3D pose (position and orientation) of individual ArUco markers.

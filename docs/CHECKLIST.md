@@ -1,10 +1,14 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # 🚀 ArUco Pose Estimation v2.0 - Getting Started Checklist
 
 ## ✅ Installation Checklist
 
 ### 1. Install Dependencies
 ```bash
-cd ArUco_Pose_Estimation
+cd aruco-pose
 pip install -r requirements.txt
 pip install click scipy pytest
 ```
@@ -40,7 +44,7 @@ python scripts/aruco_cli.py track --source 0 --show-axes --show-stats --record d
 
 | What | Where |
 |------|-------|
-| Source code | `src/` |
+| Source code | `aruco_pose/` |
 | Scripts/CLI | `scripts/` |
 | Examples | `examples/` |
 | Tests | `tests/` |
@@ -53,22 +57,22 @@ python scripts/aruco_cli.py track --source 0 --show-axes --show-stats --record d
 
 ```python
 # Detection
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 
 # Visualization  
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.visualization import ArucoVisualizer
 
 # Configuration
-from src.utils.config import ProjectConfig
+from aruco_pose.utils.config import ProjectConfig
 
 # Monitoring
-from src.utils.performance import PerformanceMonitor
+from aruco_pose.utils.performance import PerformanceMonitor
 
 # Logging
-from src.utils.logger import setup_logger
+from aruco_pose.utils.logger import setup_logger
 
 # I/O
-from src.utils.io import VideoHandler, PoseRecorder
+from aruco_pose.utils.io import VideoHandler, PoseRecorder
 ```
 
 ---
@@ -173,8 +177,8 @@ python scripts/aruco_cli.py calibrate --visualize
 
 ### Advanced:
 1. Use API in your own code
-2. Add custom models to `src/models/`
-3. Extend tracking in `src/tracking/`
+2. Add custom models to `aruco_pose/models/`
+3. Extend tracking in `aruco_pose/tracking/`
 4. Read `IMPLEMENTATION_SUMMARY.md`
 
 ---

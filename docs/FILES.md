@@ -1,29 +1,33 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Complete File Inventory - ArUco Pose Estimation v2.0
 
 This document lists all new files created during the v2.0 upgrade.
 
 ## 📦 New Package Structure (19 files)
 
-### Source Code (`src/`) - 10 files
+### Source Code (`aruco_pose/`) - 10 files
 
 #### Core Module
-- ✅ `src/__init__.py` - Package initialization
-- ✅ `src/core/__init__.py` - Core module exports
-- ✅ `src/core/detector.py` - **UnifiedArucoDetector** (main detector class)
+- ✅ `aruco_pose/__init__.py` - Package initialization
+- ✅ `aruco_pose/core/__init__.py` - Core module exports
+- ✅ `aruco_pose/core/detector.py` - **UnifiedArucoDetector** (main detector class)
 
 #### Models Module  
-- ✅ `src/models/__init__.py` - Models module exports
+- ✅ `aruco_pose/models/__init__.py` - Models module exports
 
 #### Tracking Module
-- ✅ `src/tracking/__init__.py` - Tracking module exports
+- ✅ `aruco_pose/tracking/__init__.py` - Tracking module exports
 
 #### Utilities Module
-- ✅ `src/utils/__init__.py` - Utils module exports
-- ✅ `src/utils/config.py` - **ProjectConfig** (configuration management)
-- ✅ `src/utils/visualization.py` - **ArucoVisualizer** (professional visualization)
-- ✅ `src/utils/performance.py` - **PerformanceMonitor** (FPS tracking)
-- ✅ `src/utils/logger.py` - **setup_logger** (logging system)
-- ✅ `src/utils/io.py` - **VideoHandler, PoseRecorder** (I/O utilities)
+- ✅ `aruco_pose/utils/__init__.py` - Utils module exports
+- ✅ `aruco_pose/utils/config.py` - **ProjectConfig** (configuration management)
+- ✅ `aruco_pose/utils/visualization.py` - **ArucoVisualizer** (professional visualization)
+- ✅ `aruco_pose/utils/performance.py` - **PerformanceMonitor** (FPS tracking)
+- ✅ `aruco_pose/utils/logger.py` - **setup_logger** (logging system)
+- ✅ `aruco_pose/utils/io.py` - **VideoHandler, PoseRecorder** (I/O utilities)
 
 ---
 
@@ -165,17 +169,17 @@ This document lists all new files created during the v2.0 upgrade.
 
 ### Most Important Files:
 
-1. **`src/core/detector.py`** (250 lines)
+1. **`aruco_pose/core/detector.py`** (250 lines)
    - Unified ArUco detection
    - Version compatibility
    - Core functionality
 
-2. **`src/utils/visualization.py`** (300 lines)
+2. **`aruco_pose/utils/visualization.py`** (300 lines)
    - Professional visualization
    - Multiple drawing methods
    - Debug tools
 
-3. **`src/utils/performance.py`** (200 lines)
+3. **`aruco_pose/utils/performance.py`** (200 lines)
    - Performance tracking
    - Statistics generation
    - Monitoring tools
@@ -196,7 +200,7 @@ This document lists all new files created during the v2.0 upgrade.
 
 ```
 ArUco_Pose_Estimation/
-├── src/                    # ✨ NEW
+├── aruco_pose/                    # ✨ NEW
 │   ├── __init__.py
 │   ├── core/              # ✨ NEW
 │   │   ├── __init__.py
@@ -237,34 +241,34 @@ ArUco_Pose_Estimation/
 
 ### Core Components:
 
-**`src/core/detector.py`**
+**`aruco_pose/core/detector.py`**
 - Handles ArUco marker detection
 - Works with all OpenCV versions
 - Provides unified API
 
-**`src/utils/config.py`**
+**`aruco_pose/utils/config.py`**
 - Manages configuration
 - Validates settings
 - Loads/saves YAML files
 
-**`src/utils/visualization.py`**
+**`aruco_pose/utils/visualization.py`**
 - Draws markers and axes
 - Shows pose information
 - Visualizes errors
 - Displays statistics
 
-**`src/utils/performance.py`**
+**`aruco_pose/utils/performance.py`**
 - Tracks FPS
 - Monitors detection rates
 - Records metrics
 - Generates reports
 
-**`src/utils/logger.py`**
+**`aruco_pose/utils/logger.py`**
 - Configures logging
 - File and console output
 - Multiple log levels
 
-**`src/utils/io.py`**
+**`aruco_pose/utils/io.py`**
 - Handles video sources
 - Records pose data
 - Exports to JSON/CSV

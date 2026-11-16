@@ -1,24 +1,21 @@
 """
-ArUco Pose Estimation Package
+aruco-pose: rigid marker pose estimation
 A robust toolkit for ArUco marker detection, pose estimation, and custom 3D model tracking.
 """
 
-__version__ = "2.0.0"
+__version__ = "0.2.0"
 __author__ = "Jonathan Shulgach"
 
 from .core.detector import UnifiedArucoDetector
-from .core.calibration import CameraCalibrator
-from .core.pose_estimator import PoseEstimator, MultiMarkerPoseEstimator
+from .pose import Tracker, TrackerConfig, Pose, PoseResult, PoseCandidate, MarkerObservation
 from .utils.visualization import ArucoVisualizer
 from .utils.config import ProjectConfig, CameraConfig, CalibrationConfig, ArucoConfig
 from .utils.performance import PerformanceMonitor
 from .utils.logger import setup_logger
 
 __all__ = [
+    'Tracker', 'TrackerConfig', 'Pose', 'PoseResult', 'PoseCandidate', 'MarkerObservation',
     'UnifiedArucoDetector',
-    'CameraCalibrator',
-    'PoseEstimator',
-    'MultiMarkerPoseEstimator',
     'ArucoVisualizer',
     'ProjectConfig',
     'CameraConfig',

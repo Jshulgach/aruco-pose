@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # ArUco Pose Estimation v2.0 - Implementation Summary
 
 ## 🎉 What We've Built
@@ -10,7 +14,7 @@ This document summarizes all the improvements, refactoring, and new features add
 
 ```
 ArUco_Pose_Estimation/
-├── src/                          # ✨ NEW: Organized source code
+├── aruco_pose/                          # ✨ NEW: Organized source code
 │   ├── __init__.py
 │   ├── core/                     # Core functionality
 │   │   ├── __init__.py
@@ -47,7 +51,7 @@ ArUco_Pose_Estimation/
 
 ## ✨ Key Features Implemented
 
-### 1. Unified ArUco Detector (`src/core/detector.py`)
+### 1. Unified ArUco Detector (`aruco_pose/core/detector.py`)
 
 **What it does:**
 - Automatically handles different OpenCV versions (3.x, 4.x)
@@ -61,13 +65,13 @@ ArUco_Pose_Estimation/
 
 **Example:**
 ```python
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 
 detector = UnifiedArucoDetector("DICT_5X5_100")
 corners, ids, rejected = detector.detect(image)
 ```
 
-### 2. Configuration Management (`src/utils/config.py`)
+### 2. Configuration Management (`aruco_pose/utils/config.py`)
 
 **What it does:**
 - Dataclass-based configuration with validation
@@ -81,14 +85,14 @@ corners, ids, rejected = detector.detect(image)
 
 **Example:**
 ```python
-from src.utils.config import ProjectConfig
+from aruco_pose.utils.config import ProjectConfig
 
 config = ProjectConfig.from_yaml("config.yaml")
 config.validate()
 print(f"Camera: {config.camera.width}x{config.camera.height}")
 ```
 
-### 3. Professional Visualization (`src/utils/visualization.py`)
+### 3. Professional Visualization (`aruco_pose/utils/visualization.py`)
 
 **What it does:**
 - Draw markers with customizable styles
@@ -105,7 +109,7 @@ print(f"Camera: {config.camera.width}x{config.camera.height}")
 
 **Example:**
 ```python
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.visualization import ArucoVisualizer
 
 viz = ArucoVisualizer(camera_matrix, dist_coeffs)
 frame = viz.draw_markers(frame, corners, ids, draw_axes=True)
@@ -113,7 +117,7 @@ frame = viz.draw_pose_info(frame, rvec, tvec)
 frame = viz.draw_reprojection_error(frame, obj_pts, img_pts, rvec, tvec)
 ```
 
-### 4. Performance Monitoring (`src/utils/performance.py`)
+### 4. Performance Monitoring (`aruco_pose/utils/performance.py`)
 
 **What it does:**
 - Track FPS (detection, pose estimation, overall)
@@ -128,7 +132,7 @@ frame = viz.draw_reprojection_error(frame, obj_pts, img_pts, rvec, tvec)
 
 **Example:**
 ```python
-from src.utils.performance import PerformanceMonitor
+from aruco_pose.utils.performance import PerformanceMonitor
 
 monitor = PerformanceMonitor()
 monitor.start_frame()
@@ -141,7 +145,7 @@ print(f"FPS: {stats['fps']:.1f}")
 print(monitor.get_summary())
 ```
 
-### 5. Logging System (`src/utils/logger.py`)
+### 5. Logging System (`aruco_pose/utils/logger.py`)
 
 **What it does:**
 - Configurable logging to console and file
@@ -155,14 +159,14 @@ print(monitor.get_summary())
 
 **Example:**
 ```python
-from src.utils.logger import setup_logger
+from aruco_pose.utils.logger import setup_logger
 
 logger = setup_logger("my_module", "logs/app.log", level=logging.DEBUG)
 logger.info("Starting detection")
 logger.error("Detection failed", exc_info=True)
 ```
 
-### 6. Video I/O & Recording (`src/utils/io.py`)
+### 6. Video I/O & Recording (`aruco_pose/utils/io.py`)
 
 **What it does:**
 - Robust video handler for cameras/files/streams
@@ -176,7 +180,7 @@ logger.error("Detection failed", exc_info=True)
 
 **Example:**
 ```python
-from src.utils.io import VideoHandler, PoseRecorder
+from aruco_pose.utils.io import VideoHandler, PoseRecorder
 
 with VideoHandler(source=0) as video:
     recorder = PoseRecorder("poses.json")
@@ -221,10 +225,10 @@ python scripts/generate_markers.py --ids 0 1 2 3 4 5 --sheet -o markers/sheet.pn
 
 **Commands:**
 ```bash
-aruco-cli calibrate --config config.yaml --visualize
-aruco-cli track --source 0 --show-axes --record poses.json
-aruco-cli generate 0 1 2 3 --sheet -o markers/sheet.png
-aruco-cli analyze video.mp4 --calibration K.npy --distortion D.npy
+aruco-pose calibrate --config config.yaml --visualize
+aruco-pose track --source 0 --show-axes --record poses.json
+aruco-pose generate 0 1 2 3 --sheet -o markers/sheet.png
+aruco-pose analyze video.mp4 --calibration K.npy --distortion D.npy
 ```
 
 ---
@@ -285,21 +289,21 @@ aruco-cli analyze video.mp4 --calibration K.npy --distortion D.npy
 
 ### Basic Detection
 ```python
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 detector = UnifiedArucoDetector("DICT_5X5_100")
 corners, ids, _ = detector.detect(image)
 ```
 
 ### With Visualization
 ```python
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.visualization import ArucoVisualizer
 viz = ArucoVisualizer(K, D)
 frame = viz.draw_markers(frame, corners, ids, draw_axes=True)
 ```
 
 ### With Monitoring
 ```python
-from src.utils.performance import PerformanceMonitor
+from aruco_pose.utils.performance import PerformanceMonitor
 monitor = PerformanceMonitor()
 # ... tracking code ...
 print(monitor.get_summary())
@@ -307,7 +311,7 @@ print(monitor.get_summary())
 
 ### With Recording
 ```python
-from src.utils.io import PoseRecorder
+from aruco_pose.utils.io import PoseRecorder
 recorder = PoseRecorder("output.json")
 recorder.record_frame(timestamp, rvec, tvec, ids)
 recorder.save()
@@ -323,7 +327,7 @@ python scripts/aruco_cli.py track --source 0 --record data.json
 ## 📊 Improvements Summary
 
 ### Code Organization
-✅ Proper package structure with `src/` directory
+✅ Proper package structure with `aruco_pose/` directory
 ✅ Separated concerns (core, models, tracking, utils)
 ✅ Clear module responsibilities
 ✅ Easy to extend and maintain
@@ -372,8 +376,8 @@ python scripts/aruco_cli.py track --source 0 --record data.json
 4. Adopt CLI for common workflows
 
 ### Development:
-1. Extend with custom models in `src/models/`
-2. Add tracking algorithms in `src/tracking/`
+1. Extend with custom models in `aruco_pose/models/`
+2. Add tracking algorithms in `aruco_pose/tracking/`
 3. Create new examples in `examples/`
 4. Write tests in `tests/`
 
@@ -383,21 +387,21 @@ python scripts/aruco_cli.py track --source 0 --record data.json
 
 These weren't implemented yet but are ready to add:
 
-1. **Camera Calibration Module** (`src/core/calibration.py`)
+1. **Camera Calibration Module** (`aruco_pose/core/calibration.py`)
    - Migrate calibration functions to organized module
    - Add stereo calibration class
 
-2. **Pose Estimator Module** (`src/core/pose_estimator.py`)
+2. **Pose Estimator Module** (`aruco_pose/core/pose_estimator.py`)
    - Create PoseEstimator class
    - Implement MultiMarkerPoseEstimator
    - Add pose refinement
 
-3. **Model Modules** (`src/models/`)
+3. **Model Modules** (`aruco_pose/models/`)
    - Move dodecahedron_model.py
    - Create base model class
    - Add more geometric shapes
 
-4. **Tracking Modules** (`src/tracking/`)
+4. **Tracking Modules** (`aruco_pose/tracking/`)
    - Move optical flow utilities
    - Move Kalman filter
    - Add corner tracking
@@ -418,15 +422,15 @@ These weren't implemented yet but are ready to add:
 ## 📝 Files Created
 
 ### Core Modules (8 files):
-- `src/__init__.py`
-- `src/core/__init__.py`
-- `src/core/detector.py` ⭐
-- `src/utils/__init__.py`
-- `src/utils/config.py` ⭐
-- `src/utils/visualization.py` ⭐
-- `src/utils/performance.py` ⭐
-- `src/utils/logger.py` ⭐
-- `src/utils/io.py` ⭐
+- `aruco_pose/__init__.py`
+- `aruco_pose/core/__init__.py`
+- `aruco_pose/core/detector.py` ⭐
+- `aruco_pose/utils/__init__.py`
+- `aruco_pose/utils/config.py` ⭐
+- `aruco_pose/utils/visualization.py` ⭐
+- `aruco_pose/utils/performance.py` ⭐
+- `aruco_pose/utils/logger.py` ⭐
+- `aruco_pose/utils/io.py` ⭐
 
 ### Scripts (2 files):
 - `scripts/generate_markers.py` ⭐
@@ -512,7 +516,7 @@ To understand the new features:
 ### To Contribute:
 
 1. **Add tests**: Create tests in `tests/`
-2. **Extend features**: Add to `src/`
+2. **Extend features**: Add to `aruco_pose/`
 3. **Improve docs**: Update README
 4. **Share examples**: Add to `examples/`
 

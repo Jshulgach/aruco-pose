@@ -31,7 +31,9 @@ def setup_logger(name="aruco_pose", log_file=None, level=logging.INFO,
     logger.setLevel(level)
     
     # Remove existing handlers to avoid duplicates
-    logger.handlers.clear()
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
+        handler.close()
     
     # Create formatter
     formatter = logging.Formatter(

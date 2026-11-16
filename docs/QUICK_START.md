@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Quick Start Guide - ArUco Pose Estimation v2.0
 
 Get up and running in 5 minutes!
@@ -12,7 +16,7 @@ Get up and running in 5 minutes!
 
 ```bash
 # Navigate to the package directory
-cd ArUco_Pose_Estimation
+cd aruco-pose
 
 # Install dependencies
 pip install -r requirements.txt
@@ -115,7 +119,7 @@ python scripts/aruco_cli.py track \
 ### Minimal Example (10 lines)
 
 ```python
-from src.core.detector import UnifiedArucoDetector
+from aruco_pose.core.detector import UnifiedArucoDetector
 import cv2
 
 detector = UnifiedArucoDetector("DICT_5X5_100")
@@ -136,8 +140,8 @@ cv2.destroyAllWindows()
 ### With Pose Estimation (20 lines)
 
 ```python
-from src.core.detector import UnifiedArucoDetector
-from src.utils.visualization import ArucoVisualizer
+from aruco_pose.core.detector import UnifiedArucoDetector
+from aruco_pose.utils.visualization import ArucoVisualizer
 import cv2
 import numpy as np
 
@@ -172,9 +176,9 @@ cv2.destroyAllWindows()
 ### With Performance Monitoring (25 lines)
 
 ```python
-from src.core.detector import UnifiedArucoDetector
-from src.utils.visualization import ArucoVisualizer
-from src.utils.performance import PerformanceMonitor
+from aruco_pose.core.detector import UnifiedArucoDetector
+from aruco_pose.utils.visualization import ArucoVisualizer
+from aruco_pose.utils.performance import PerformanceMonitor
 import cv2
 import numpy as np
 

@@ -1,8 +1,12 @@
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 # This script is used to visualize the dodecahedron with ArUco markers.
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from dodecahedron_model import CleanDodecahedronModel
+from aruco_pose.models.dodecahedron_model import CleanDodecahedronModel
 
 # Create the model for the dodecahedron
 model = CleanDodecahedronModel()

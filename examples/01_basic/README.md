@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Basic Examples
 
 This directory contains fundamental examples for getting started with ArUco marker detection and camera calibration.
@@ -27,7 +31,7 @@ python camera_calibration.py
 ### 2. `generate_markers.py`
 Generate ArUco markers for printing or display.
 
-**Note:** This example demonstrates marker generation. The core utility is now in `src/utils/marker_generator.py`.
+**Note:** This example demonstrates marker generation. The core utility is now in `aruco_pose/utils/marker_generator.py`.
 
 **Usage:**
 ```bash

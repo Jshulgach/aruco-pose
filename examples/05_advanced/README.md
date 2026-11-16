@@ -1,3 +1,7 @@
+> Historical / experimental documentation. Some APIs and commands below are
+> outdated. Start with the repository README and docs/POSE_API.md for supported
+> commands, tested behavior and limitations. Performance figures below are unverified.
+
 # Advanced Tracking Techniques
 
 This directory contains advanced examples for improving tracking accuracy, handling fast motion, and using sophisticated computer vision algorithms.
@@ -9,7 +13,7 @@ Lucas-Kanade optical flow tracking between ArUco detections.
 
 **Usage:**
 ```python
-from src.tracking import OpticalFlowTracker
+from aruco_pose.tracking import OpticalFlowTracker
 
 tracker = OpticalFlowTracker()
 # After detecting markers
@@ -43,7 +47,7 @@ Dense image alignment for pose refinement using Kabsch algorithm.
 
 **Usage:**
 ```python
-from src.tracking import DenseRefiner
+from aruco_pose.tracking import DenseRefiner
 
 refiner = DenseRefiner()
 # After initial pose estimation
@@ -256,8 +260,8 @@ Where:
 Complete tracking pipeline combining all techniques:
 
 ```python
-from src.tracking import OpticalFlowTracker
-from src.tracking import DenseRefiner
+from aruco_pose.tracking import OpticalFlowTracker
+from aruco_pose.tracking import DenseRefiner
 from gpt_predictive_filter import PoseFilter
 from gpt_pose_refiner import refine_pose
 

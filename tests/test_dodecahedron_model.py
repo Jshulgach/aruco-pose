@@ -1,7 +1,11 @@
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 # visualize_dodecahedron.py
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from dodecahedron_model import DodecahedronModel
+from aruco_pose.models.dodecahedron_model import CleanDodecahedronModel
 import numpy as np
 
 def sort_face_vertices(vertices):
@@ -17,12 +21,12 @@ def sort_face_vertices(vertices):
     angles = np.arctan2(coords_2d[:, 1], coords_2d[:, 0])
     return vertices[np.argsort(angles)]
 
-def plot_dodecahedron(model: DodecahedronModel):
+def plot_dodecahedron(model: CleanDodecahedronModel):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
     verts = model.vertices
-    faces = model.faces
+    faces = model.pentagon_faces
 
     # Plot faces
     for face in faces:
@@ -55,5 +59,5 @@ def plot_dodecahedron(model: DodecahedronModel):
 
 
 if __name__ == "__main__":
-    model = DodecahedronModel()
+    model = CleanDodecahedronModel()
     plot_dodecahedron(model)

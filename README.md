@@ -1,365 +1,199 @@
-# ArUco Pose Estimation Toolkit v0.2.0
+# aruco-pose
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![OpenCV](https://img.shields.io/badge/opencv-4.6+-green.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+Print a rigid marker board, calibrate a camera, track its 6-DoF pose, and export CSV.
+The supported starter workflow runs on a webcam **or the included synthetic videos**.
+Python 3.9+; tested on Windows with Python 3.11 and OpenCV 4.14.
 
-A professional, robust toolkit for ArUco marker detection, pose estimation, and custom 3D model tracking in Python.
+## Install
 
-<div align="center">
-<img src="assets/aruco-track.gif" width="700">
-</div>
+From this repository's root, using a working Python installation:
 
-## ✨ Features
-
-### Core Capabilities
-- **Universal ArUco Detection** - Seamless support for OpenCV versions 4.x and 3.x
-- **Camera Calibration** - Single and dual-camera calibration workflows
-- **Pose Estimation** - Real-time 6DOF pose tracking from markers
-- **Custom 3D Models** - Dodecahedron and custom geometry tracking
-- **Multi-Marker Fusion** - Improved accuracy from marker groups
-- **Performance Monitoring** - Built-in FPS and error tracking
-- **Data Recording** - Export pose data in JSON/CSV formats
-
-### Advanced Features
-- **Pose Refinement** - Scipy-based optimization for sub-pixel accuracy
-- **Optical Flow Tracking** - Maintain tracking between detections
-- **Kalman Filtering** - Smooth pose trajectories
-- **Reprojection Visualization** - Debug pose estimation quality
-- **CLI Interface** - Professional command-line tools
-- **Configuration Management** - YAML-based with validation
-
-## 🚀 Quick Start
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/Jshulgach/ArUco_Pose_Estimation.git
-cd ArUco_Pose_Estimation
-
-# Install in development mode
-pip install -e .
-
-# Or install from requirements
-pip install -r requirements.txt
+```powershell
+python -m venv .venv
+# Windows PowerShell (activation is optional):
+.venv\Scripts\python.exe -m pip install -e .
+# Optional activation, so the remaining commands can use `python`:
+.venv\Scripts\Activate.ps1
 ```
 
-### Basic Usage
+On macOS/Linux, use `.venv/bin/python` instead. In the commands below, `python`
+means that environment's interpreter. You can activate it, or substitute its full
+path. The installed `aruco-pose` command is equivalent to `python -m aruco_pose`.
+`aruco-cli` remains a compatibility alias. The distribution is named `aruco-pose`
+and the import package is `aruco_pose`; publishing instructions are in [the release guide](docs/PUBLISHING.md).
+Use a fresh environment: install only `opencv-contrib-python`, not both OpenCV
+wheel variants, because they share the same `cv2` module. A graphical desktop is
+needed only for `--preview` or printing SVGs through a browser.
 
-#### 1. Generate ArUco Markers
+## Try it without a camera
 
-```bash
-# Using the example script
-python examples/01_basic/generate_markers.py --ids 0 1 2 3 4 5 --output markers/
+The repository includes a 30-view checkerboard clip and a six-second tracking clip
+under `assets/starter/`. They are explicitly **synthetic perspective renders**,
+not evidence of real-world accuracy. No downloads or camera calibration files from
+your own machine are needed after installation.
 
-# Or use the CLI tool
-python tools/cli.py generate 0 1 2 3 4 5 --size 200 --dict DICT_4X4_50
+```powershell
+python -m aruco_pose kit calibrate --source assets/starter/calibration.mp4 --stride 1 --output output/sample_calibration.json
+python -m aruco_pose kit track --source assets/starter/tracking.mp4 --model assets/starter/board.json --calibration output/sample_calibration.json --csv output/sample_poses.csv --output-video output/sample_tracked.mp4
 ```
 
-#### 2. Camera Calibration
+Expected: 120 CSV rows, 110 measured poses and 10 lost frames. Frames 50-59 hide the
+whole board; frames 85-99 hide two markers while tracking continues with the other
+two. Add `--preview` to see the overlay while processing, or open
+`output/sample_tracked.mp4` afterward. Defaults are headless.
 
-```bash
-# Using the calibration example
-python examples/01_basic/camera_calibration.py
+Outputs:
 
-# Or use the CLI
-python tools/cli.py calibrate --rows 9 --cols 6 --output calibration/
+- `output/sample_calibration.json`: estimated camera matrix, distortion, resolution,
+  calibration RMS and view count.
+- `output/sample_poses.csv`: one row per decoded frame, including explicit losses.
+- `output/sample_poses.summary.json`: counts, model/calibration snapshots, units,
+  coordinate conventions, time basis and quality thresholds.
+- `output/sample_tracked.mp4`: annotated video.
+
+`assets/starter/reference_camera.json` and `ground_truth.csv` describe the known
+synthetic camera and motion. The quick start deliberately estimates calibration
+from the checkerboard clip instead of using the reference values. Regenerate all
+sample inputs with `python -m aruco_pose kit sample --output output/new_sample`.
+
+## Use a real camera: print -> calibrate -> track -> CSV
+
+### 1. Print and mount the targets
+
+```powershell
+python -m aruco_pose kit print --output output/print
 ```
 
-#### 3. Real-time Tracking
+Open the SVGs in a browser and print at **100% / actual size**, with fit-to-page,
+headers and footers disabled. Targets are A4. Verify the 50 mm reference line and
+measure the black marker squares: they must be 40 mm wide, with 20 mm gaps.
+Mount the entire marker board flat on rigid backing; do not rearrange the markers.
+The checkerboard is a separate target with **9 x 6 inner corners** and 20 mm squares.
+Keep it flat too. Inspect the print for clipping or smudged black/white cells.
 
-```bash
-# Simple pose estimation
-python examples/02_single_marker/simple_pose_estimation.py
+The generated `board.json` defines the exact four-marker layout, IDs 0-3 in
+`DICT_5X5_100`. Keep it with its printed target. Never use a model with a different
+printed scale or arrangement.
 
-# Or use advanced tracking demo
-python examples/02_single_marker/marker_tracking.py
+### 2. Calibrate at your tracking resolution
+
+```powershell
+python -m aruco_pose kit calibrate --source 0 --preview --output output/my_camera.json
 ```
 
-### Python API Example
+Show the complete checkerboard and press **SPACE** to capture each view. Move and
+tilt it between captures: near/far, left/right, top/bottom, with varied angles.
+Use at least 8 distinct observations; aim for 20-30. Press **Q** to solve, or let
+capture stop at 40 accepted views. Keep camera resolution, focus and zoom fixed
+between calibration and tracking. The command reports RMS reprojection error;
+values above 1 pixel prompt a warning. Low RMS alone does not establish accuracy.
+
+For a checkerboard video instead, pass its path and choose `--stride 10` (or a
+suitable interval). Change `--cols`, `--rows` and `--square-size` only when using a
+different measured calibration target. Camera indexes such as `0` and `1` are
+supported. If you need a particular capture resolution, configure the camera
+beforehand and confirm it remains unchanged for both steps.
+
+### 3. Track and export
+
+```powershell
+python -m aruco_pose kit track --source 0 --model output/print/board.json --calibration output/my_camera.json --csv output/my_poses.csv --preview --output-video output/my_tracking.mp4
+```
+
+Press **Q** to stop. For a recorded board video, replace `0` with its path. At least
+two recognized board markers are required by default. `--min-markers 1` permits
+single-marker estimates but increases planar-pose ambiguity. Unknown IDs are
+ignored. The shared solver rejects corner/marker outliers before fitting. A pose is
+rejected without majority support, when inlier reprojection RMSE exceeds
+`--max-error` (default 3 pixels), or when accepted points have invalid depth.
+Close planar alternatives are reported as ambiguous unless a recent compatible
+measurement resolves the choice. No prediction is substituted
+for a missing measurement. The entire CSV remains available after a normal quit.
+
+## Understand the CSV
+
+| Columns | Meaning |
+| --- | --- |
+| `frame`, `time_s` | Zero-based frame and elapsed seconds; video time is frame/FPS, camera time is monotonic host receipt time. |
+| `object_id`, `status` | `starter_board`; `measured`, `lost`, `rejected`, or `ambiguous`. |
+| `marker_ids`, `marker_count` | Accepted inlier marker IDs separated by semicolons, and their count. |
+| `tx_m`, `ty_m`, `tz_m` | Board origin in camera coordinates, in meters. |
+| `qx`, `qy`, `qz`, `qw` | Unit quaternion rotating board coordinates into camera coordinates. |
+| `reprojection_rmse_px` | Root mean squared 2D corner-distance residual; not a physical accuracy estimate. |
+
+Transform: `p_camera = R_object_to_camera @ p_object + t_object_to_camera`.
+Camera axes: **x right, y down, z forward**. Board origin: center of the four-marker
+layout, x printed right, y printed down, z into the paper. This is not a robot's
+world-frame pose. Lost/rejected/ambiguous rows have blank position/quaternion fields. Do not
+replace blanks with zeros or carry forward old poses without labeling them.
+
+File timestamps assume constant frame rate. Camera timestamps describe host frame
+receipt, not hardware exposure time. The calibration resolution is checked against
+every frame; mismatches fail rather than silently scaling camera intrinsics.
+
+## Troubleshooting
+
+- **No detections:** verify print scale/dictionary, lighting, focus, full black
+  borders and white margins; move closer until the markers occupy more pixels.
+- **Not enough calibration views:** show the complete checkerboard, use inner-corner
+  counts, and vary its position/tilt. Reduce video stride for short clips.
+- **Wrong physical distance:** measure the print and verify the matching model.
+  Calibration square size and marker positions must be in meters.
+- **Pose flips/jitter:** planar boards have ambiguous poses in difficult views;
+  improve viewing angle, resolution and lighting. The shared solver rejects corner/marker outliers and flags close planar
+  alternatives; a recent compatible measurement may resolve them. It does not
+  smooth poses or substitute predictions for missing observations.
+- **Video cannot open/write:** confirm the path and codec. Output `.avi` uses MJPG;
+  other output extensions use mp4v (use `.mp4`).
+- **Python command fails:** choose an installed interpreter explicitly; do not reuse
+  an old virtual environment pointing at a removed Python installation.
+
+## Shared Python pose API
+
+The CLI and updated tracking examples now share `Tracker` and `PoseResult`:
 
 ```python
-from src.core.detector import UnifiedArucoDetector
-from src.utils.visualization import ArucoVisualizer
-from src.utils.performance import PerformanceMonitor
-import cv2
-import numpy as np
-
-# Load calibration
-K = np.load("camera_intrinsics.npy")
-D = np.load("camera_distortion.npy")
-
-# Initialize components
-detector = UnifiedArucoDetector("DICT_5X5_100")
-visualizer = ArucoVisualizer(K, D)
-monitor = PerformanceMonitor()
-
-# Capture and process video
-cap = cv2.VideoCapture(0)
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    
-    # Detect markers
-    corners, ids, rejected = detector.detect(frame)
-    
-    # Draw visualization
-    frame = visualizer.draw_markers(frame, corners, ids, 
-                                    draw_axes=True, marker_size=0.05)
-    
-    # Track performance
-    monitor.record_detection(len(ids) if ids is not None else 0)
-    
-    cv2.imshow('Tracking', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-
-# Print statistics
-print(monitor.get_summary())
+from aruco_pose import Tracker, TrackerConfig
+# model is an explicit-corner model dict; K/D are camera intrinsics/distortion.
+tracker = Tracker(model, K, D, config=TrackerConfig(min_markers=2))
+result = tracker.process(frame, timestamp_s=timestamp_s, previous=previous_result)
+if result.pose is not None:
+    position_m = result.pose.translation_m
+    quaternion_xyzw = result.pose.quaternion_xyzw
 ```
 
-## 📁 Project Structure
+See [the complete API guide](docs/POSE_API.md) for a runnable example, transform
+conventions, outlier/ambiguity policies and legacy adapters. Run
+`python examples/pose_api_demo.py --preview` for a looping camera-free Python
+example. It writes no data files unless `--csv PATH` is passed. Stop with Q, Escape,
+window close or Ctrl+C; use `--seconds 20` for a time limit, or `--once` for one pass. The CSV/summary
+schema is version 2: old columns are preserved, with support, reason, candidate and
+frame diagnostics appended. Read fields by name and handle `ambiguous` rows.
 
-```
-ArUco_Pose_Estimation/
-├── src/                   # Source code
-│   ├── core/             # Core detection and calibration
-│   │   └── detector.py   # Unified ArUco detector
-│   ├── models/           # 3D geometric models
-│   │   ├── dodecahedron_model.py
-│   │   ├── aruco_pose_pipeline.py
-│   │   └── aruco_pose_estimator.py
-│   ├── tracking/         # Advanced tracking utilities
-│   │   ├── optical_flow.py
-│   │   └── dense_refinement.py
-│   └── utils/            # Utilities
-│       ├── config.py
-│       ├── visualization.py
-│       ├── performance.py
-│       ├── marker_generator.py
-│       └── io.py
-├── examples/             # Learning examples (01→05)
-│   ├── 01_basic/        # Calibration, marker generation
-│   ├── 02_single_marker/ # Single marker tracking
-│   ├── 03_multi_marker/ # Multi-marker fusion
-│   ├── 04_custom_models/ # Dodecahedron tracking
-│   └── 05_advanced/     # Advanced techniques
-├── tools/               # CLI and visualization tools
-│   └── cli.py          # Main command-line interface
-├── tests/              # Unit tests
-├── docs/               # Documentation
-├── config/             # Configuration files
-├── assets/             # Media files
-└── setup.py           # Package setup
+See [package migration notes](docs/PACKAGE_MIGRATION.md) when updating an existing
+installation or imports from the old `src` namespace.
+
+## Development and other examples
+
+```powershell
+python -m pip install -e ".[dev]"
+python -m pytest -q
 ```
 
-## 🎯 Usage Examples
+The starter `kit` commands are the supported end-to-end path. Older top-level CLI
+commands and examples are experimental and have different formats. Dodecahedron
+tracking remains available under `examples/04_custom_models/`; see
+[model scaling](docs/MODEL_SCALING.md) before using the saved 17 mm and 25 mm models.
+The flat starter board uses a separate explicit-corner model, not those legacy JSON
+formats. [Roadmap](docs/ROADMAP.md) describes the steps toward one shared API and ROS 2.
 
-### Command-Line Interface
+Sample assets are generated by this repository and covered by its Apache 2.0 license.
 
-The toolkit includes a comprehensive CLI:
+## Acknowledgements
 
-```bash
-# Calibration
-python tools/cli.py calibrate --rows 9 --cols 6 --output calibration/
+Built on OpenCV ArUco and inspired by the original
+[GSNCodes ArUco examples](https://github.com/GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python).
+See [LICENSE](LICENSE) for the existing Apache 2.0 terms.
 
-# Real-time tracking
-python tools/cli.py track --source 0 --config config.yaml --output poses.json
-
-# Generate markers
-python tools/cli.py generate 0 1 2 3 4 5 --size 200 --dict DICT_4X4_50
-
-# Analyze recorded data
-python tools/cli.py analyze --input tracking.json --plot --report
-```
-
-### Configuration Management
-
-```python
-from src.utils.config import ProjectConfig
-
-# Load configuration
-config = ProjectConfig.from_yaml("config.yaml")
-
-# Validate
-config.validate()
-
-# Access settings
-print(f"Camera: {config.camera.width}x{config.camera.height}")
-print(f"Marker size: {config.aruco.marker_size} m")
-
-# Save configuration
-config.to_yaml("output_config.yaml")
-```
-
-### Performance Monitoring
-
-```python
-from src.utils.performance import PerformanceMonitor
-
-monitor = PerformanceMonitor(window_size=30)
-
-# Track a frame
-monitor.start_frame()
-# ... do detection and pose estimation ...
-monitor.record_detection(num_markers=5)
-monitor.end_frame()
-
-# Get statistics
-stats = monitor.get_stats()
-print(f"FPS: {stats['fps']:.1f}")
-print(f"Avg markers: {stats['avg_markers']:.1f}")
-
-# Print summary
-print(monitor.get_summary())
-```
-
-### Data Recording
-
-```python
-from src.utils.io import PoseRecorder, VideoHandler
-import time
-
-# Record pose data
-recorder = PoseRecorder("poses.json", save_interval=100)
-
-with VideoHandler(source=0) as video:
-    while True:
-        ret, frame = video.read()
-        if not ret:
-            break
-        
-        # ... detect and estimate pose ...
-        
-        recorder.record_frame(
-            timestamp=time.time(),
-            rvec=rvec,
-            tvec=tvec,
-            marker_ids=ids,
-            reprojection_error=error
-        )
-
-recorder.save()
-stats = recorder.get_statistics()
-print(f"Recorded {stats['total_frames']} frames")
-```
-
-## 🔧 Configuration
-
-Example `config.yaml`:
-
-```yaml
-camera:
-  device_id: 0
-  width: 1920
-  height: 1080
-  fps: 30
-
-calibration:
-  checkerboard_rows: 5
-  checkerboard_cols: 7
-  square_size: 0.0319  # meters
-  n_frames: 10
-  img_dir: "frames"
-  cooldown: 100
-  view_resize: 2.0
-
-aruco:
-  dict_type: "DICT_5X5_100"
-  marker_size: 0.015  # meters
-```
-
-## 📊 Performance
-
-Typical performance on modern hardware:
-- **Detection**: 50-100 FPS (single marker)
-- **Pose Estimation**: 40-80 FPS
-- **Reprojection Error**: < 1 pixel (calibrated camera)
-- **Tracking Latency**: < 20ms
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new features
-4. Submit a pull request
-
-## 📝 Citation
-
-If you use this toolkit in your research, please cite:
-
-```bibtex
-@software{aruco_pose_estimation,
-  author = {Shulgach, Jonathan},
-  title = {ArUco Pose Estimation Toolkit},
-  year = {2025},
-  url = {https://github.com/Jshulgach/ArUco_Pose_Estimation}
-}
-```
-
-## 📚 Documentation
-
-Comprehensive documentation is available in the `docs/` directory:
-
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes
-- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Upgrade from legacy code
-- **[Examples Guide](examples/README.md)** - Complete examples walkthrough
-- **[Tools Reference](tools/README.md)** - CLI and visualization tools
-- **[Implementation Details](docs/IMPLEMENTATION_SUMMARY.md)** - Technical deep dive
-
-See [docs/README.md](docs/README.md) for the complete documentation index.
-
-## 🙏 Acknowledgements
-
-This project builds upon:
-- [GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python](https://github.com/GSNCodes/ArUCo-Markers-Pose-Estimation-Generation-Python) - Initial inspiration
-- OpenCV ArUco module documentation
-- Community contributions and feedback
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🐛 Troubleshooting
-
-### Camera not detected
-```bash
-# List available cameras
-python -c "import cv2; print([cv2.VideoCapture(i).isOpened() for i in range(10)])"
-```
-
-### Calibration files not found
-Make sure to run calibration first:
-```bash
-python examples/01_basic/camera_calibration.py
-```
-
-### Poor tracking performance
-- Ensure proper lighting
-- Check marker print quality
-- Verify calibration accuracy
-- Adjust detector parameters
-
-### Import errors
-```bash
-# Reinstall dependencies
-pip install -r requirements.txt --upgrade
-```
-
-## 📧 Contact
-
-For questions or issues:
-- **Author**: Jonathan Shulgach
-- **Email**: jshulgac@andrew.cmu.edu
-- **Issues**: [GitHub Issues](https://github.com/Jshulgach/ArUco_Pose_Estimation/issues)
-
----
-
-⭐ If you find this project useful, please star it on GitHub!
+The [release audit](docs/RELEASE_AUDIT.md) records verified checks and remaining
+release decisions, including the public package namespace and older media.

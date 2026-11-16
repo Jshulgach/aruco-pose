@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "generator": "python -m aruco_pose kit sample",
+  "seed": 42,
+  "fps": 20,
+  "tracking_frames": 120,
+  "calibration_views": 30,
+  "description": "Perspective-rendered DICT_5X5_100 board and checkerboard; not real-world accuracy evidence.",
+  "complete_loss_frames": [
+    50,
+    59
+  ],
+  "partial_occlusion_frames": [
+    85,
+    99
+  ],
+  "license": "Apache-2.0, generated from this repository; no third-party footage"
+}
