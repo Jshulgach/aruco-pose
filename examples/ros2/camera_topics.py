@@ -43,7 +43,11 @@ class TopicInput:
         image_qos = QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT)
         info_qos = QoSProfile(
             depth=8,
-            reliability=ReliabilityPolicy.BEST_EFFORT,
+            reliability=(
+                ReliabilityPolicy.RELIABLE
+                if args.camera_info_transient_local
+                else ReliabilityPolicy.BEST_EFFORT
+            ),
             durability=(
                 DurabilityPolicy.TRANSIENT_LOCAL
                 if args.camera_info_transient_local

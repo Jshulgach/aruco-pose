@@ -126,12 +126,14 @@ The cache has no independent calibration-age limit: the driver must publish
 updates when intrinsics change. Changed K/D or resolution resets the pose prior
 and rebuilds the tracker. Future calibration is never applied to an earlier
 image. For a publish-once **transient-local** CameraInfo publisher, additionally
-use `--camera-info-transient-local` to receive retained calibration on joining.
-Do not use that flag with a volatile publisher; their durability is incompatible.
+use `--camera-info-transient-local` to request reliable, transient-local delivery
+and receive retained calibration on joining. The publisher must also be reliable
+and transient-local. Do not use that flag with a volatile or best-effort publisher.
 
 Image subscription QoS is **best effort, volatile, keep-last 1**; CameraInfo is
-**best effort, keep-last 8**, volatile by default. These subscribers accept
-best-effort or reliable publishers. Slow processing drops queued images instead
+**best effort, volatile, keep-last 8** by default, accepting best-effort or reliable
+publishers. The optional retained-info mode instead requests reliable durability
+as described above. Slow processing drops queued images instead
 of building an unbounded backlog. Unlike file replay, this mode does not promise
 to process every published image. Pose/status output QoS remains reliable depth 1.
 

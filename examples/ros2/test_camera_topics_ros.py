@@ -253,7 +253,7 @@ def test_latest_static_calibration_and_bounded_cache(graph_factory):
         graph.node.topic_input.on_info,
         QoSProfile(
             depth=8,
-            reliability=ReliabilityPolicy.BEST_EFFORT,
+            reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         ),
     )
@@ -443,14 +443,27 @@ def test_topic_cli_without_calibration_json_shuts_down_cleanly(graph_factory, tm
             and graph.info_pub.get_subscription_count() >= 2,
             timeout=15.0,
         )
-        image, info = graph.messages()
-        graph.send(image, info)
-        graph.spin_until(
-            lambda: any(values(s)["measurement_valid"] == "true" for s in statuses),
-            timeout=10.0,
-        )
+        # A camera is a stream: one-shot best-effort delivery is not guaranteed.
+        sent = set()
+        deadline = time.monotonic() + 10.0
+        while time.monotonic() < deadline and not any(
+            values(s)["measurement_valid"] == "true" for s in statuses
+        ):
+            image, info = graph.messages()
+            sent.add(ns(image.header.stamp))
+            graph.info_pub.publish(info)
+            graph.image_pub.publish(image)
+            until = time.monotonic() + 0.1
+            while time.monotonic() < until:
+                graph.executor.spin_once(timeout_sec=0.01)
+        if not any(values(s)["measurement_valid"] == "true" for s in statuses):
+            process.send_signal(signal.SIGINT)
+            output, _ = process.communicate(timeout=10.0)
+            pytest.fail(
+                f"CLI produced no measurement. Statuses: {[values(s) for s in statuses[-3:]]}; output: {output}"
+            )
         measured = next(s for s in statuses if values(s)["measurement_valid"] == "true")
-        assert measured.header.stamp == image.header.stamp
+        assert ns(measured.header.stamp) in sent
         process.send_signal(signal.SIGINT)
         output, _ = process.communicate(timeout=10.0)
         assert process.returncode == 0 and "Traceback" not in output, output
