@@ -1,0 +1,16 @@
+{
+  "source": "Entirely synthetic; markers detected from rendered pixels by Tracker.process, without a pose prior.",
+  "fps": 24,
+  "seconds": 10,
+  "frames": 240,
+  "statuses": {
+    "measured": 240
+  },
+  "edge_length_m": 0.025,
+  "marker_size_m": 0.015,
+  "minimum_inlier_markers": 3,
+  "maximum_inlier_markers": 6,
+  "max_translation_error_mm": 0.5481122769505508,
+  "max_rotation_error_degrees": 0.8379911154346721,
+  "note": "Synthetic software verification, not physical tracking accuracy."
+}

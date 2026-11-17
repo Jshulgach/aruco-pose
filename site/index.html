@@ -32,7 +32,7 @@
         <p class="hero-description">A practical toolkit for turning printed markers into a useful reference frame. Calibrate a camera, track a rigid object, and take its 3D pose into your next experiment.</p>
         <div class="hero-actions"><a class="button primary" href="#start">Try the starter kit <span aria-hidden="true">↘</span></a><a class="text-link" href="https://github.com/Jshulgach/aruco-pose#readme">Read the docs <span aria-hidden="true">↗</span></a></div>
         <div class="install"><span class="prompt" aria-hidden="true">$</span><code id="install-command">pip install aruco-pose</code><button class="copy icon-button" type="button" data-copy="install-command" aria-label="Copy pip install command">Copy</button></div>
-        <p class="small-note">A camera is optional. Start with the included synthetic replay.</p>
+        <p class="small-note">A camera is optional. Start with the included synthetic replay.<br><a class="under-link" href="#dodecahedron">Watch the 3D target <span aria-hidden="true">↓</span></a></p>
       </div>
       <figure class="hero-figure">
         <div class="figure-bar"><span><i class="live-dot" aria-hidden="true"></i> RIGID TARGET / CAMERA FRAME</span><span>DEMO 01</span></div>
@@ -53,6 +53,11 @@
         <li><span class="step-number">03</span><h3>Track the object</h3><p>Combine visible markers into one rigid-object pose. Inspect inliers, rejected corners and competing planar solutions.</p><a class="under-link" href="https://github.com/Jshulgach/aruco-pose/blob/main/docs/POSE_API.md">Explore the pose API <span aria-hidden="true">↗</span></a><span class="spec">Object → camera / meters</span></li>
         <li><span class="step-number">04</span><h3>Use the result</h3><p>Stream results into your Python application, or explicitly export CSV for plots, replay and further analysis.</p><a class="under-link" href="https://github.com/Jshulgach/aruco-pose#understand-the-csv">See the CSV fields <span aria-hidden="true">↗</span></a><span class="spec">Translation / quaternion / quality</span></li>
       </ol>
+    </section>
+
+    <section id="dodecahedron" class="dode-section wrap section" aria-labelledby="dode-title">
+      <div class="dode-copy"><p class="eyebrow">DEMO 02 / A TARGET IN THREE DIMENSIONS</p><h2 id="dode-title">New face.<br>Same reference frame.</h2><p>A dodecahedron puts markers on twelve faces of one rigid target. As it turns, different markers come into view; their known geometry connects each observation to the same object frame.</p><p>This synthetic 25 mm-edge target is rendered, then detected and tracked through the shared pose API. The colored axes and visible edge overlay come from the estimated pose.</p><a class="under-link" href="https://github.com/Jshulgach/aruco-pose/blob/main/examples/04_custom_models/dodecahedron_tracking_demo.py">Explore the camera tracking example <span aria-hidden="true">↗</span></a><p class="small-note">The physical example needs calibration and a model matching your target’s marker positions and orientations. This replay uses its own generated layout.</p></div>
+      <figure class="dode-figure"><div class="figure-bar"><span>12 FACES / ONE RIGID OBJECT</span><span>DEMO 02</span></div><div class="video-stage"><video id="dode-video" autoplay loop muted playsinline controls preload="metadata" poster="assets/dodecahedron-preview.jpg" aria-label="Synthetic rotating dodecahedron with detected markers and estimated 3D pose"><source src="assets/dodecahedron-demo.mp4" type="video/mp4">Your browser cannot play this video. <a href="assets/dodecahedron-demo.mp4">Download the dodecahedron demo.</a></video></div><figcaption><span class="figure-caption-title">Follow the object, across its faces.</span><span>Synthetic 3D replay · 10 seconds · no camera footage</span></figcaption></figure>
     </section>
 
     <section class="start-section" id="start" aria-labelledby="start-title"><div class="wrap start-grid">

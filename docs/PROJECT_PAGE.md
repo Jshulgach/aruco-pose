@@ -29,6 +29,26 @@ personal camera recordings. The annotated hero video comes from the synthetic
 starter replay, transcoded to H.264/yuv420p with fast-start MP4 metadata for browser
 compatibility. Its six-second clip includes complete and partial occlusion.
 
+The second demo shows a rotating synthetic dodecahedron with true 25 mm edges and
+15 mm markers. Each frame is rendered with back-face culling and perspective
+marker textures, then passed through `Tracker.process` without a pose prior.
+The axes and visible wireframe use the measured pose; ground truth is used only
+to check the result. This generated marker layout is separate from the physical
+target configurations. It does not change the saved physical JSON models.
+
+To regenerate the ten-second H.264 clip, poster and verification report:
+
+```powershell
+python -m pip install imageio-ffmpeg
+python scripts/generate_dodecahedron_demo.py
+python scripts/build_project_page.py
+```
+
+Run this in the development environment (`pip install -e .[dev]`).
+`imageio-ffmpeg` is an optional media-generation tool, not a runtime dependency.
+The report is `site/assets/dodecahedron-demo.json`; its errors measure recovery
+from ideal synthetic images, not accuracy with a physical camera or target.
+
 ## Deploy
 
 Push changes to `site/`, the starter assets, the builder or Pages workflow on `main`.

@@ -24,8 +24,9 @@ document.querySelectorAll("[data-copy]").forEach((button) => {
   });
 });
 
-const video = document.getElementById("demo-video");
-if (video && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  video.autoplay = false;
-  video.pause();
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  document.querySelectorAll("video").forEach((video) => {
+    video.autoplay = false;
+    video.pause();
+  });
 }

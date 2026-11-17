@@ -49,7 +49,8 @@ def build_page(output):
         shutil.copyfile(ROOT / "site" / name, output / name)
     assets = output / "assets"
     assets.mkdir(exist_ok=True)
-    for name in ["favicon.svg", "tracking-demo.mp4", "preview.jpg"]:
+    for name in ["favicon.svg", "tracking-demo.mp4", "preview.jpg",
+                 "dodecahedron-demo.mp4", "dodecahedron-preview.jpg", "dodecahedron-demo.json"]:
         shutil.copyfile(ROOT / "site" / "assets" / name, assets / name)
     for name in ["marker_board.svg", "checkerboard.svg", "board.json"]:
         shutil.copyfile(ROOT / "assets" / "starter" / name, assets / name)

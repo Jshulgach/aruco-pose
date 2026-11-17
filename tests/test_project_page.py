@@ -12,6 +12,8 @@ def test_project_page_builds_with_valid_local_links(tmp_path):
     validate_page(output)
     assert (output / "assets/tracking-demo.mp4").stat().st_size > 1000
     assert (output / "assets/preview.jpg").exists()
+    assert (output / "assets/dodecahedron-demo.mp4").stat().st_size > 1000
+    assert (output / "assets/dodecahedron-preview.jpg").exists()
     html = (output / "index.html").read_text(encoding="utf-8")
     assert "Synthetic" in html or "synthetic" in html
     assert "pip install aruco-pose" in html
