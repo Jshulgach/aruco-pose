@@ -59,10 +59,10 @@ jobs:
       - name: Install optional ROS example dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends python3-venv libgl1 libglib2.0-0 ros-jazzy-tf2-ros ros-jazzy-tf2-msgs ros-jazzy-geometry-msgs ros-jazzy-diagnostic-msgs
+          apt-get install -y --no-install-recommends python3-venv libgl1 libglib2.0-0 ros-jazzy-tf2-ros ros-jazzy-tf2-msgs ros-jazzy-geometry-msgs ros-jazzy-diagnostic-msgs ros-jazzy-sensor-msgs
           python3 -m venv --system-site-packages /tmp/aruco-ros-venv
           /tmp/aruco-ros-venv/bin/python -m pip install -e . pytest
       - name: Track decoded replay through real ROS publishers and subscribers
         run: |
           source /opt/ros/jazzy/setup.bash
-          /tmp/aruco-ros-venv/bin/python -m pytest examples/ros2/test_target_pose_ros.py -q
+          /tmp/aruco-ros-venv/bin/python -m pytest examples/ros2 -q

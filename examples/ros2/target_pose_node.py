@@ -1,4 +1,4 @@
-"""Optional ROS 2 Jazzy example: OpenCV source -> shared Tracker -> pose/TF/status."""
+"""Optional ROS 2 Jazzy example: OpenCV or camera topics -> Tracker -> pose/TF/status."""
 
 import argparse
 import math
@@ -103,18 +103,46 @@ class TargetPoseNode(Node):
             raise
 
     def _configure(self, args):
-        if self.get_parameter("use_sim_time").value:
+        topic_mode = bool(getattr(args, "image_topic", None))
+        if self.get_parameter("use_sim_time").value and not topic_mode:
             raise ValueError(
                 "This OpenCV replay example requires use_sim_time=false; it does not publish /clock"
             )
-        self.parent = args.camera_frame
-        model = load_model(args.model)
+        self.parent = args.camera_frame or "camera_optical_frame"
+        self.model = model = load_model(args.model)
         if not 1 <= args.min_markers <= len(model["markers"]):
             raise ValueError(
                 "Minimum marker count must be between 1 and the model's marker count"
             )
         self.child = args.target_frame or model["object_id"]
         validate_frames(self.parent, self.child)
+        self.previous = None
+        self.frame_index = self.cycle_index = 0
+        self.start = time.monotonic()
+        self.terminal = None
+        self.last_stamp_ns = None
+        self.timer = self.tracker = None
+        self.live = False
+        self.stamp_basis = (
+            "Image.header.stamp"
+            if topic_mode
+            else "ROS time at OpenCV read completion; not hardware exposure"
+        )
+        self.source_time_basis = (
+            "Image.header.stamp seconds"
+            if topic_mode
+            else "frame index / FPS within replay cycle"
+        )
+        qos = QoSProfile(depth=1)  # Reliable, volatile, keep-last: no latched pose.
+        self.pose_publisher = self.create_publisher(PoseStamped, "~/pose", qos)
+        self.status_publisher = self.create_publisher(DiagnosticArray, "~/status", qos)
+        self.broadcaster = None if args.no_tf else TransformBroadcaster(self, qos=qos)
+        self.heartbeat = self.create_timer(1.0, self.publish_terminal)
+        if topic_mode:
+            from camera_topics import TopicInput
+
+            self.topic_input = TopicInput(self, args)
+            return
         calibration, matrix, distortion = load_calibration(args.calibration)
         self.size = (calibration["image_width"], calibration["image_height"])
         self.tracker = Tracker(
@@ -134,55 +162,56 @@ class TargetPoseNode(Node):
         self.loop = args.loop
         if self.loop and self.live:
             raise ValueError("--loop is only for recorded video")
-        self.previous = None
-        self.frame_index = self.cycle_index = 0
-        self.start = time.monotonic()
-        self.terminal = None
-        self.last_stamp_ns = None
-        qos = QoSProfile(depth=1)  # Reliable, volatile, keep-last: no latched pose.
-        self.pose_publisher = self.create_publisher(PoseStamped, "~/pose", qos)
-        self.status_publisher = self.create_publisher(DiagnosticArray, "~/status", qos)
-        self.broadcaster = None if args.no_tf else TransformBroadcaster(self, qos=qos)
+        if self.live:
+            self.source_time_basis = "monotonic since start"
         self.timer = self.create_timer(1 / self.fps, self.tick)
-        self.heartbeat = self.create_timer(1.0, self.publish_terminal)
         self.get_logger().info(
             f"{self.parent} <- {self.child}; {self.fps:g} FPS; pose + status; TF={not args.no_tf}"
         )
 
     def publish(
-        self, result, stamp, source_time_s=None, source_state="active", reason=""
+        self,
+        result,
+        stamp,
+        source_time_s=None,
+        source_state="active",
+        reason="",
+        *,
+        frame_index=None,
+        stamp_basis=None,
+        extra_values=None,
     ):
         pose, transform, diagnostic = messages_for(
             result,
             stamp,
             parent=self.parent,
             child=self.child,
-            frame_index=self.frame_index,
+            frame_index=self.frame_index if frame_index is None else frame_index,
             source_time_s=source_time_s,
             source_state=source_state,
             reason=reason,
         )
         if not diagnostic.status[0].hardware_id:
-            diagnostic.status[0].hardware_id = self.tracker.object_id
+            diagnostic.status[0].hardware_id = self.model["object_id"]
             for value in diagnostic.status[0].values:
                 if value.key == "object_id":
-                    value.value = self.tracker.object_id
+                    value.value = self.model["object_id"]
         diagnostic.status[0].values.extend(
             [
                 KeyValue(
                     key="stamp_basis",
-                    value="ROS time at OpenCV read completion; not hardware exposure",
+                    value=stamp_basis or self.stamp_basis,
                 ),
                 KeyValue(
                     key="source_time_basis",
-                    value=(
-                        "monotonic since start"
-                        if self.live
-                        else "frame index / FPS within replay cycle"
-                    ),
+                    value=self.source_time_basis,
                 ),
             ]
         )
+        if extra_values:
+            diagnostic.status[0].values.extend(
+                KeyValue(key=key, value=value) for key, value in extra_values.items()
+            )
         if pose is not None:
             self.pose_publisher.publish(pose)
             if self.broadcaster is not None:
@@ -192,8 +221,10 @@ class TargetPoseNode(Node):
     def stop_source(self, state, reason):
         self.terminal = (state, reason)
         self.previous = None
-        self.timer.cancel()
-        self.cap.release()
+        if self.timer is not None:
+            self.timer.cancel()
+        if self.cap is not None:
+            self.cap.release()
         self.get_logger().info(reason)
         self.publish_terminal()
 
@@ -201,7 +232,11 @@ class TargetPoseNode(Node):
         if self.terminal is not None:
             state, reason = self.terminal
             self.publish(
-                None, self.get_clock().now().to_msg(), source_state=state, reason=reason
+                None,
+                self.get_clock().now().to_msg(),
+                source_state=state,
+                reason=reason,
+                stamp_basis="ROS status time (no acquisition)",
             )
 
     def tick(self):
@@ -265,9 +300,42 @@ class TargetPoseNode(Node):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, help="Video path or camera index")
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument("--source", help="Video path or camera index")
+    inputs.add_argument(
+        "--image-topic", help="Raw, unrectified sensor_msgs/Image topic"
+    )
+    parser.add_argument(
+        "--camera-info-topic", help="Matching sensor_msgs/CameraInfo topic"
+    )
+    parser.add_argument(
+        "--camera-info-policy", choices=["exact", "latest"], default="exact"
+    )
+    parser.add_argument(
+        "--camera-info-transient-local",
+        action="store_true",
+        help="For latched CameraInfo publishers only",
+    )
+    parser.add_argument(
+        "--max-image-age",
+        type=float,
+        default=0.25,
+        help="Maximum acquisition age at publication, seconds",
+    )
+    parser.add_argument(
+        "--future-tolerance",
+        type=float,
+        default=0.05,
+        help="Allowed image clock lead, seconds",
+    )
+    parser.add_argument(
+        "--image-timeout",
+        type=float,
+        default=0.5,
+        help="Wall-time silence before invalid status, seconds",
+    )
     parser.add_argument("--model", required=True)
-    parser.add_argument("--calibration", required=True)
+    parser.add_argument("--calibration", help="Calibration JSON for --source only")
     parser.add_argument("--camera-frame", default="camera_optical_frame")
     parser.add_argument("--target-frame", help="Default: the model's object_id")
     parser.add_argument("--min-markers", type=int, default=2)
@@ -278,6 +346,15 @@ def main():
     )
     parser.add_argument("--no-tf", action="store_true")
     args, ros_args = parser.parse_known_args()
+    if args.image_topic:
+        if not args.camera_info_topic or args.calibration or args.loop:
+            parser.error(
+                "Topic input requires --camera-info-topic and cannot use --calibration or --loop"
+            )
+    elif not args.calibration or args.camera_info_topic:
+        parser.error(
+            "--source requires --calibration and cannot use --camera-info-topic"
+        )
     rclpy.init(args=ros_args)
     node = None
     try:
@@ -293,7 +370,8 @@ def main():
             if rclpy.ok():
                 node.close()
             else:
-                node.cap.release()
+                if node.cap is not None:
+                    node.cap.release()
                 node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()

@@ -30,8 +30,9 @@ needed only for `--preview` or printing SVGs through a browser.
 ## Try it without a camera
 
 For ROS 2, see the optional [target pose + TF example](examples/ros2/README.md).
-It runs the dodecahedron replay on ROS 2 Jazzy, publishes measured poses and
-tracking diagnostics, and includes frame/timestamp conventions and an RViz view.
+It runs the dodecahedron replay or raw Image/CameraInfo topics on ROS 2 Jazzy,
+publishes measured poses and tracking diagnostics, and includes acquisition-time
+and calibration rules, frame conventions, camera-topic instructions and an RViz view.
 
 For a 3D target, try the [dodecahedron print + replay kit](docs/DODECAHEDRON_KIT.md):
 an A4 PDF/SVG with glue tabs and paired edge labels, a matching 25 mm-edge model,
