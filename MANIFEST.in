@@ -7,3 +7,5 @@ recursive-include tools *.py *.md
 recursive-include config *.json
 recursive-include assets/starter *.json *.svg *.csv *.mp4
 global-exclude __pycache__ *.py[cod] desktop.ini
+recursive-include scripts *.py
+recursive-include site *.html *.css *.js *.svg *.jpg *.mp4

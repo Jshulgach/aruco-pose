@@ -1,5 +1,7 @@
 # aruco-pose
 
+[Project page](https://jshulgach.github.io/aruco-pose/) · [PyPI](https://pypi.org/project/aruco-pose/) · [Python API](docs/POSE_API.md)
+
 Print a rigid marker board, calibrate a camera, track its 6-DoF pose, and export CSV.
 The supported starter workflow runs on a webcam **or the included synthetic videos**.
 Python 3.9+; tested on Windows with Python 3.11 and OpenCV 4.14.
