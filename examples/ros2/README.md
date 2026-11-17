@@ -5,7 +5,7 @@ local camera through OpenCV and uses the same `Tracker` as the CLI. No ROS packa
 are imported by the core `aruco_pose` library. This first example does not subscribe
 to `sensor_msgs/Image`/`CameraInfo`; camera-driver integration remains roadmap work.
 
-The node writes no files. It publishes one target's measured pose, optional dynamic
+The example saves no CSV or video. It publishes one target's measured pose, optional dynamic
 TF, and tracking diagnostics. No covariance, filtering, robot commands or world
 localization are implied by these messages.
 
@@ -180,7 +180,8 @@ hardware limitations. This does not consume an existing ROS camera topic.
 The ordinary suite tests the ROS-free frame/status contract. The separate Jazzy
 CI job runs real ROS message and DDS tests in `ros:jazzy-ros-base-noble`, including
 all 240 decoded replay frames, shared timestamps, TF direction, source EOF,
-non-measured suppression, loop reset and disabling TF. To run them locally:
+non-measured suppression, loop reset, disabling TF, CLI remapping and clean Ctrl+C
+shutdown. To run them locally:
 
 ```bash
 source /opt/ros/jazzy/setup.bash

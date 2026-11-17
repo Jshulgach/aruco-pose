@@ -8,6 +8,7 @@ import cv2
 import rclpy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from geometry_msgs.msg import PoseStamped, TransformStamped
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from tf2_ros import TransformBroadcaster
@@ -282,7 +283,7 @@ def main():
     try:
         node = TargetPoseNode(args)
         rclpy.spin(node)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     except (ValueError, OSError, cv2.error) as error:
         parser.exit(1, f"{error}\n")

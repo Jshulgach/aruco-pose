@@ -237,3 +237,60 @@ def test_loop_clears_prior_and_no_tf_option(tmp_path):
         if sender is not None:
             sender.close()
         rclpy.shutdown()
+
+
+def test_cli_remapping_and_clean_sigint_without_output_files(tmp_path):
+    import signal
+    import subprocess
+
+    rclpy.init()
+    receiver = executor = process = None
+    try:
+        receiver = Node("aruco_cli_test_receiver")
+        statuses = []
+        subscription = receiver.create_subscription(
+            DiagnosticArray, "/aruco_cli_test/status", statuses.append, 10
+        )
+        executor = SingleThreadedExecutor()
+        executor.add_node(receiver)
+        kit = ROOT / "assets/dodecahedron"
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                str(Path(__file__).with_name("target_pose_node.py")),
+                "--source",
+                str(kit / "tracking.mp4"),
+                "--model",
+                str(kit / "model.json"),
+                "--calibration",
+                str(kit / "replay_camera.json"),
+                "--loop",
+                "--ros-args",
+                "-r",
+                "__node:=aruco_cli_test",
+            ],
+            cwd=tmp_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        deadline = time.monotonic() + 20
+        while not statuses and time.monotonic() < deadline and process.poll() is None:
+            executor.spin_once(timeout_sec=0.05)
+        assert statuses, "CLI did not publish to its remapped private status topic"
+        assert statuses[-1].status[0].level == DiagnosticStatus.OK
+        process.send_signal(signal.SIGINT)
+        output, _ = process.communicate(timeout=10)
+        assert process.returncode == 0, output
+        assert "Traceback" not in output
+        assert list(tmp_path.iterdir()) == []
+    finally:
+        if process is not None and process.poll() is None:
+            process.kill()
+            process.communicate(timeout=10)
+        if executor is not None:
+            executor.shutdown()
+        if receiver is not None:
+            receiver.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
