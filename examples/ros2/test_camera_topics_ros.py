@@ -35,12 +35,13 @@ def ns(stamp):
 
 
 class CameraGraph:
-    def __init__(self, policy="exact", transient=False):
+    def __init__(self, policy="exact", transient=False, image_space="raw"):
         kit = ROOT / "assets/dodecahedron"
         args = argparse.Namespace(
             image_topic="/test_camera/image_raw",
             camera_info_topic="/test_camera/camera_info",
             camera_info_policy=policy,
+            image_space=image_space,
             camera_info_transient_local=transient,
             max_image_age=0.5,
             future_tolerance=0.05,
@@ -406,7 +407,10 @@ def test_topic_mode_accepts_simulated_clock_and_preserves_image_stamp(graph_fact
     assert graph.poses[-1].header.stamp == Time(sec=100)
 
 
-def test_topic_cli_without_calibration_json_shuts_down_cleanly(graph_factory, tmp_path):
+@pytest.mark.parametrize("image_space", ["raw", "rectified"])
+def test_topic_cli_without_calibration_json_shuts_down_cleanly(
+    graph_factory, tmp_path, image_space
+):
     import signal
     import subprocess
 
@@ -426,6 +430,8 @@ def test_topic_cli_without_calibration_json_shuts_down_cleanly(graph_factory, tm
             "--model",
             str(ROOT / "assets/dodecahedron/model.json"),
             "--no-tf",
+            "--image-space",
+            image_space,
             "--max-image-age",
             "1.0",
             "--ros-args",
@@ -450,6 +456,13 @@ def test_topic_cli_without_calibration_json_shuts_down_cleanly(graph_factory, tm
             values(s)["measurement_valid"] == "true" for s in statuses
         ):
             image, info = graph.messages()
+            if image_space == "rectified":
+                info.r = np.eye(3).ravel().tolist()
+                info.p = (
+                    np.column_stack([np.array(info.k).reshape(3, 3), np.zeros(3)])
+                    .ravel()
+                    .tolist()
+                )
             sent.add(ns(image.header.stamp))
             graph.info_pub.publish(info)
             graph.image_pub.publish(image)
@@ -472,3 +485,110 @@ def test_topic_cli_without_calibration_json_shuts_down_cleanly(graph_factory, tm
         if process.poll() is None:
             process.kill()
             process.communicate(timeout=10.0)
+
+
+def test_rectified_dds_retains_original_optical_axes_and_internal_prior(graph_factory):
+    import csv
+    from scipy.spatial.transform import Rotation
+
+    graph = graph_factory(image_space="rectified")
+    ideal = graph.frame.copy()
+    k = np.array([[1500.0, 0.0, 480.0], [0.0, 1500.0, 360.0], [0.0, 0.0, 1.0]])
+    d = np.array([-0.3, 0.08, 0.002, -0.001, 0.005])
+    p = np.array(
+        [[1100.0, 0.0, 480.0, -110.0], [0.0, 1150.0, 360.0, 55.0], [0.0, 0.0, 1.0, 0.0]]
+    )
+    u, v = np.meshgrid(
+        np.arange(960, dtype=np.float32), np.arange(720, dtype=np.float32)
+    )
+    inverse = cv2.undistortPoints(
+        np.stack([u, v], axis=-1).reshape(-1, 1, 2), k, d, P=k
+    ).reshape(720, 960, 2)
+    raw = cv2.remap(ideal, inverse[:, :, 0], inverse[:, :, 1], cv2.INTER_LINEAR)
+    with (ROOT / "assets/dodecahedron/ground_truth.csv").open() as stream:
+        reference = next(csv.DictReader(stream))
+    expected_translation = np.array(
+        [float(reference[key]) for key in ("tx_m", "ty_m", "tz_m")]
+    )
+    expected_rotation = Rotation.from_rotvec(
+        [float(reference[key]) for key in ("rx_rad", "ry_rad", "rz_rad")]
+    )
+    previous_tracker = None
+    for angles in ([0.08, -0.1, 0.04], [-0.05, 0.07, -0.03]):
+        r = Rotation.from_euler("xyz", angles).as_matrix()
+        maps = cv2.initUndistortRectifyMap(k, d, r, p, (960, 720), cv2.CV_32FC1)
+        pixels = cv2.remap(raw, *maps, cv2.INTER_LINEAR)
+        image, info = graph.messages()
+        image.data = pixels.tobytes()
+        info.d, info.r, info.p = d.tolist(), r.ravel().tolist(), p.ravel().tolist()
+        graph.send(image, info)
+        graph.measured(image)
+        pose, transform = graph.poses[-1], graph.transforms[-1]
+        position, quaternion = pose.pose.position, pose.pose.orientation
+        assert pose.header.stamp == image.header.stamp == transform.header.stamp
+        assert (
+            pose.header.frame_id == transform.header.frame_id == "camera_optical_frame"
+        )
+        assert (
+            np.linalg.norm(
+                np.array([position.x, position.y, position.z]) - expected_translation
+            )
+            < 0.002
+        )
+        assert (
+            np.degrees(
+                (
+                    Rotation.from_quat(
+                        [quaternion.x, quaternion.y, quaternion.z, quaternion.w]
+                    ).inv()
+                    * expected_rotation
+                ).magnitude()
+            )
+            < 1.5
+        )
+        assert (
+            graph.node.previous.parent_frame
+            == "camera_optical_frame_rectified_internal"
+        )
+        assert (
+            graph.node.tracker is not previous_tracker
+        )  # Changed R resets calibration/prior.
+        previous_tracker = graph.node.tracker
+        status = next(
+            s
+            for s in reversed(graph.statuses)
+            if values(s)["measurement_valid"] == "true"
+        )
+        assert values(status)["image_space"] == "rectified"
+
+
+@pytest.mark.parametrize("fault", ["R", "P"])
+def test_rectified_invalid_camera_info_reports_error_then_recovers(
+    graph_factory, fault
+):
+    graph = graph_factory(image_space="rectified")
+    image, info = graph.messages()
+    info.r = np.eye(3).ravel().tolist()
+    info.p = (
+        np.column_stack([np.array(info.k).reshape(3, 3), np.zeros(3)]).ravel().tolist()
+    )
+    if fault == "R":
+        info.r = [0.0] * 9
+    else:
+        info.p[0] = 0.0
+    index = graph.send(image, info)
+    graph.spin_until(
+        lambda: any(
+            values(s)["frame_index"] == str(index)
+            and values(s)["source_state"] == "error"
+            for s in graph.statuses
+        )
+    )
+    assert not graph.poses and not graph.transforms
+    fresh, valid = graph.messages()
+    valid.r = np.eye(3).ravel().tolist()
+    valid.p = (
+        np.column_stack([np.array(valid.k).reshape(3, 3), np.zeros(3)]).ravel().tolist()
+    )
+    graph.send(fresh, valid)
+    graph.measured(fresh)

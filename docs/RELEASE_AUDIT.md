@@ -1,115 +1,83 @@
-# Public-release audit - 2026-11-16
+# Public release review - 0.3.0
 
-## Verdict
+Review date: 2026-11-17. Distribution: `aruco-pose`; import: `aruco_pose`.
+Repository: [Jshulgach/aruco-pose](https://github.com/Jshulgach/aruco-pose).
 
-The supported starter/API path is a tested alpha candidate. Do not describe the
-entire legacy collection as production-ready or publish a stable PyPI release yet.
-At audit time the existing GitHub repository was already public and the new
-features were local. The subsequent release-preparation change renames the
-repository to `Jshulgach/aruco-pose` and adds CI. Package uploads remain manual;
-see [publishing instructions](PUBLISHING.md).
+## Scope and publication
 
-## Naming follow-up (completed)
+This is a beta toolkit for print/calibrate/track/CSV, rigid-target pose estimation
+and optional ROS 2 examples. It includes synthetic replays and printable target
+geometry. It is not a physically validated navigation, robot-control or metrology
+system. Older experiments are labeled separately from supported starter/API paths.
 
-The chosen distribution is now `aruco-pose`; the import namespace is `aruco_pose`.
-The generic namespace finding below is resolved. Both `aruco-pose` and the legacy
-`aruco-cli` command are supplied by the same module. The repository has also been renamed to `Jshulgach/aruco-pose`;
-no registry publication was performed by the assistant. See [package migration](PACKAGE_MIGRATION.md).
-The preliminary shortlist below records the audit's earlier naming discussion.
+0.3.0 is prepared for owner-run publication, subject to the final checks below.
+CI never uploads to PyPI. Use [the publishing guide](PUBLISHING.md) after checks
+pass. The prior audit's local recovery/naming discussion is preserved in Git
+history; its alpha verdict and old test counts are not this release's verdict.
 
-## Verified
+## Verification record
 
-- **81 tests pass without warnings**, including formerly false-passing installation
-  checks, all pose/geometry regressions, demo controls and legacy fixes.
-- Built a wheel, installed it into a separate target directory, changed working
-  directory and used isolated Python. Verified project modules loaded from that
-  installed wheel, not the editable checkout. Generated samples, calibrated their
-  camera and tracked/exported 120 frames: 110 measured, 10 lost.
-- Undefined-name checks across `src`, `tools` and `examples` pass. Installed
-  dependency consistency (`pip check`) passes.
-- A credential-pattern scan over 17 local Git revisions (including stash history)
-  found zero matches for the checked private-key/AWS/GitHub/OpenAI token patterns.
-  This is a limited pattern scan, not proof of no secrets or a full security audit.
-- Existing Apache-2.0 LICENSE retained. Metadata, README and synthetic sample
-  provenance now agree with it; no relicensing was performed.
+Local release checks completed:
 
-## Findings corrected
+- 141 core tests pass, including rectified geometry and decoded-marker regressions.
+- Wheel/source build and strict Twine validation pass. Dependency consistency
+  (`pip check`) passes. Both artifacts report 0.3.0 and Apache-2.0 metadata.
+- An isolated wheel install outside the checkout generates sample inputs,
+  calibrates and tracks 120 frames: 110 measured, 10 lost.
+- Source-archive inspection finds the changelog, review, ROS scripts/RViz view,
+  print PDF and site sources. Legacy footage, GIFs and personal calibration/output
+  files are excluded. The wheel exports only the core namespace and metadata.
+- Desktop/mobile browser checks cover layout, ROS command copying and both
+  synthetic video decoders. The exact packaged README renders with valid UTF-8.
+- Limited credential-pattern scan of 129 source/text files finds no matches.
+- Independent geometry and public-release review finds no blocking issue in
+  rectified transforms, candidates, prior frames, stereo offsets, archive contents,
+  public claims or publishing commands. The post-upload module check uses isolated
+  Python so it cannot import the checkout instead of the installed wheel.
 
-| Finding | Repair |
-| --- | --- |
-| Package metadata and sample docs incorrectly claimed MIT despite the Apache LICENSE. | Corrected labels and restored the original inspiration acknowledgement. |
-| Python module reported 2.0.0 while package/CLI reported 0.2.0. | Aligned module version to 0.2.0. A new release version should be chosen before tagging. |
-| Seven installation tests returned booleans, so failed checks could pass pytest. | Pytest wrappers now assert results; returning non-None is treated as an error. |
-| Windows logging verification deleted an open log file; reconfiguration also discarded handlers without closing them. | Close/remove handlers properly; test cleanup releases handles. |
-| Visualization test created a plot at collection time. | Moved plotting behind its explicit main entry point. |
-| Legacy helpers referenced undefined marker maps and transformation functions. | Routed compatibility paths through the shared pose API and added known-pose regressions. |
-| Legacy calibration used a removed root utils import and incomplete settings. | Fixed package import and complete config conversion; headless capture now starts. |
-| Missing-image calibration error referenced an undefined variable. | Error now reports the configured directory. |
-| Standalone marker PNG generation used a removed OpenCV API. | Updated generation and tested actual marker detection from its output. |
-| Legacy tracking source option inferred integer-only input. | Accepts camera indexes or video paths as documented. |
-| Build backend wasn't declared and package discovery was too broad. | Added pyproject build requirements and limited discovery to maintained package namespaces. |
-| Historical docs advertised unverified performance and obsolete commands. | Clearly labeled them historical; current README/API guide define supported behavior. |
-| Gitignore suppressed all YAML/text files, hiding potential source/config additions. | Removed those broad rules; retained calibration/output ignores and added local log/env/desktop metadata rules. |
+CI additionally exercises Windows/Linux core tests and real Jazzy message/DDS
+tests: raw/rectified/replay input, acquisition stamps, frame direction, nonidentity
+R, P distinct from K, stereo offsets, invalid input and clean shutdown. The final
+commit's green results remain required before upload.
 
-## Demo behavior requested alongside the audit
+See [CI](https://github.com/Jshulgach/aruco-pose/actions/workflows/ci.yml) for the
+final commit's results. Distribution builds require core and ROS jobs to pass.
+[Changelog](../CHANGELOG.md) records compatibility; core API/CSV schemas are unchanged.
 
-`examples/pose_api_demo.py` now writes no data file unless `--csv PATH` is supplied.
-It loops recorded video at playback speed until stopped; `--seconds N` applies a
-positive finite wall-clock limit, and `--once` stops at the first EOF. Q, Escape,
-window close and Ctrl+C clean up capture/writer resources. Video timestamps/frame
-indices increase across repeats; the pose prior is cleared on each restart. Empty
-videos and failed live cameras never spin in a restart loop.
+## Geometry and time
 
-```powershell
-python examples/pose_api_demo.py --preview
-python examples/pose_api_demo.py --preview --seconds 20
-python examples/pose_api_demo.py --preview --seconds 20 --csv output/poses.csv
-```
+Raw topics use K/D. Explicit rectified input uses P's left 3x3 and zero distortion,
+then restores both pose rotation and translation to original optical axes with
+R.T. Candidates are converted too; internal priors stay rectified and reset when
+R changes. Stereo P offsets are not camera mounting transforms. Invalid matrices
+and unsupported ROI/binning produce invalid status instead of geometry guesses.
 
-## Remaining release decisions and checks
+ROS topics preserve image acquisition stamps. OpenCV has approximate host
+read-completion stamps. Neither proves hardware timestamp accuracy. Consumers
+must check status and freshness: buffered TF is not a current measurement.
 
-1. **Media/privacy review.** The pre-existing 25 MB raw MP4 contains a visible face
-   and workplace background in sampled frames. Review the entire clip and the old
-   GIF before redistributing them in a renamed/repackaged release. They are already
-   in the public repository and were not removed or altered. The new synthetic
-   samples contain no recorded people/workplace footage.
-2. **Public namespace migration: resolved in the naming follow-up.** The wheel now
-   installs only `aruco_pose`. The previous generic `src` and `tools` package exports
-   have been removed; the old CLI spelling remains an alias.
-3. **Limit the release promise.** Starter/API paths are supported; monolithic legacy
-   experiments and every older CLI mode have not received equivalent runtime/GUI
-   validation. Their docs are labeled accordingly. No real-world speed, subpixel,
-   navigation safety or positional accuracy guarantee is justified by synthetic data.
-4. **Physical and platform validation.** Print and measure targets; run calibrated
-   cameras; exercise GUI closing on actual Windows/Linux/macOS backends. Automated
-   tests cover behavior with simulated controls and headless videos. Add CI across
-   supported Python/OpenCV/platform combinations before a stable release.
-5. **Prepare release scope.** Review the substantial uncommitted recovery/starter/API
-   changes; keep local recovery notes out of public release docs if unwanted; remove
-   tracked desktop.ini if desired; select release version and changelog. Stash retained.
-6. **Dependency/security scope.** Dependency consistency was checked, but no external
-   vulnerability-database, full dependency-license or exhaustive source security scan
-   was performed. No findings-free certification is implied.
+## Packaging and public surface
 
-## Preliminary naming check
+- The wheel exports `aruco_pose` and the `aruco-pose`/`aruco-cli` commands, without
+  generic `src`/`tools` packages or ROS dependencies.
+- Apache-2.0 license and original-project acknowledgement remain. Kit ZIPs include
+  the license. Release archives include maintained guides/examples and synthetic
+  assets; personal calibration/output files are excluded.
+- Showcase footage is synthetic. Legacy camera footage/GIF already in Git history
+  is not used on the site or included in release artifacts. This release does
+  not remove or certify the privacy of that pre-existing history.
+- Public pages distinguish source-release features from the currently published
+  PyPI version. ROS examples require the checkout and a separate ROS installation.
 
-Checked on 2026-11-16. GitHub names are scoped by owner; a similarly named repo
-elsewhere does not alone prevent an owner-scoped repository name. Python import
-names and PyPI distribution names are separate choices.
+## Remaining validation limits
 
-| Name | Observed result | Assessment |
-| --- | --- | --- |
-| ArUco_Pose_Estimation / aruco-pose-estimation | Your existing GitHub repo is public; the exact PyPI JSON endpoint returned 404. Many related projects use similar descriptive wording. | Can keep the repo name; weak differentiation and the generic Python namespace should still change. |
-| FiducialKit / fiducialkit | PyPI JSON endpoint returned 404; no exact indexed GitHub hit found in the preliminary search. | Best provisional shortlist choice for print/calibration/rigid-target workflows. |
-| MarkerForge / markerforge | PyPI JSON endpoint returned 404; broader web uses exist. | More suggestive of marker generation than pose tracking; secondary choice. |
-| PoseKit / posekit | Existing `anibali/posekit` repository and other uses found, even though the PyPI JSON lookup returned 404. | Avoid to reduce confusion. |
+Physical print measurements, assembly tolerance, calibrated hardware capture,
+RViz GUI interaction, hardware synchronization and every OS/Python/OpenCV pairing
+have not received equivalent physical testing. Synthetic/headless results do not
+establish real-world accuracy. Requirements allow Python 3.9+; core CI exercises
+3.11 and Jazzy integration exercises system Python 3.12.
 
-404 means no currently returned public project at that endpoint, not guaranteed
-registrability: names may be reserved or otherwise unavailable. GitHub API search
-could not be verified from this environment due certificate validation, so web
-index searches are preliminary. No name/domain/trademark clearance or reservation
-was performed. Recheck the chosen name directly before renaming/publishing.
-
-Sources: [existing repository](https://github.com/Jshulgach/aruco-pose),
-[existing PoseKit](https://github.com/anibali/posekit), and direct HTTPS requests to
-`https://pypi.org/pypi/{name}/json` for the listed normalized distribution names.
+Credential-pattern checks and archive inspection are limited safeguards, not a
+security certification or exhaustive dependency/license/vulnerability audit.
+Resolve blocking review/test findings before upload. The owner's PyPI upload
+and post-publication verification remain the final manual steps.

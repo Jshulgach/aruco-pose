@@ -302,8 +302,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     inputs = parser.add_mutually_exclusive_group(required=True)
     inputs.add_argument("--source", help="Video path or camera index")
-    inputs.add_argument(
-        "--image-topic", help="Raw, unrectified sensor_msgs/Image topic"
+    inputs.add_argument("--image-topic", help="Uncompressed sensor_msgs/Image topic")
+    parser.add_argument(
+        "--image-space",
+        choices=["raw", "rectified"],
+        default="raw",
+        help="raw: K/D; rectified: P intrinsics, zero distortion, output original optical axes",
     )
     parser.add_argument(
         "--camera-info-topic", help="Matching sensor_msgs/CameraInfo topic"
@@ -355,6 +359,8 @@ def main():
         parser.error(
             "--source requires --calibration and cannot use --camera-info-topic"
         )
+    elif args.image_space != "raw":
+        parser.error("--image-space rectified applies only to --image-topic")
     rclpy.init(args=ros_args)
     node = None
     try:

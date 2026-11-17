@@ -1,64 +1,60 @@
-# Publish aruco-pose 0.2.0
+# Publish aruco-pose 0.3.0
 
-Repository: https://github.com/Jshulgach/aruco-pose
-Distribution: `aruco-pose`; import: `aruco_pose`; commands: `aruco-pose` and `aruco-cli`.
-PyPI upload is performed manually by the owner. CI only tests, builds and validates
-artifacts; it never uploads to PyPI. Do not send a token in chat or commit it.
+The owner performs the PyPI upload. CI tests core and ROS paths, builds the wheel
+and source archive, and runs strict Twine checks. It never publishes to PyPI.
+The existing project is `aruco-pose`; the import is `aruco_pose`.
 
-## First upload from PowerShell
+## PowerShell commands
 
-Run from your existing checkout (its local folder name need not match GitHub):
+Run from the checked checkout after its release checks pass:
 
 ```powershell
 cd C:\Users\jonat\Documents\GitHub\ArUco_Pose_Estimation
+git pull --ff-only origin main
 .\.venv\Scripts\python.exe -m pip install --upgrade build twine
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m build --outdir dist
-.\.venv\Scripts\python.exe -m twine check --strict dist/aruco_pose-0.2.0-py3-none-any.whl dist/aruco_pose-0.2.0.tar.gz
-.\.venv\Scripts\python.exe -m twine upload --username __token__ dist/aruco_pose-0.2.0-py3-none-any.whl dist/aruco_pose-0.2.0.tar.gz
+.\.venv\Scripts\python.exe -m build --outdir dist/0.3.0
+.\.venv\Scripts\python.exe -m twine check --strict dist/0.3.0/aruco_pose-0.3.0-py3-none-any.whl dist/0.3.0/aruco_pose-0.3.0.tar.gz
+.\.venv\Scripts\python.exe -m twine upload --username __token__ dist/0.3.0/aruco_pose-0.3.0-py3-none-any.whl dist/0.3.0/aruco_pose-0.3.0.tar.gz
 ```
 
-The exact file names prevent accidentally uploading older builds. The initial
-wheel and source archive may already be present in `dist/` after release preparation.
-If you change code/metadata after building, rebuild and recheck before uploading.
+Enter a project-scoped PyPI API token for `aruco-pose` at Twine's password prompt.
+Do not put it in the command line, repository or chat. Valid local keyring
+credentials may avoid a prompt. Exact filenames exclude older `dist/` artifacts.
 
-Sign in/create an account at https://pypi.org/ and complete its account requirements
-(including verified email and two-factor authentication). Create an API token under
-https://pypi.org/manage/account/token/ . A first upload of a new project needs a token
-able to create that project; a project-scoped token cannot select a project that
-hasn't been created yet. Enter the full token at Twine's password prompt, not as a
-command-line argument. Account ownership comes from the token used for this upload.
-After project creation, prefer a project-scoped token or Trusted Publishing.
+The module, package metadata and CLI versions must all be 0.3.0. Rebuild if code
+changes after testing. PyPI files cannot be overwritten: if 0.3.0 was already
+successfully uploaded, do not upload modified artifacts under the same version.
 
-Check https://pypi.org/project/aruco-pose/0.2.0/ after upload. In a separate clean
-environment, install `aruco-pose==0.2.0` and check:
+## Verify after upload
 
-```python
-from aruco_pose import Tracker
+Inspect [the PyPI release](https://pypi.org/project/aruco-pose/0.3.0/) for its
+README, version, license and files. Test the public wheel in a separate environment:
+
+```powershell
+python -m venv output/pypi-check
+.\output\pypi-check\Scripts\python.exe -m pip install --no-cache-dir aruco-pose==0.3.0
+.\output\pypi-check\Scripts\python.exe -I -m aruco_pose --version
+.\output\pypi-check\Scripts\aruco-pose.exe --version
+.\output\pypi-check\Scripts\aruco-cli.exe --version
+.\output\pypi-check\Scripts\aruco-pose.exe kit sample --output output/pypi-sample
 ```
 
-Also run `aruco-pose --version` and `aruco-cli --version`. The repository's README
-contains the camera-free workflow; an installed package can generate those inputs
-with `aruco-pose kit sample --output sample`.
+On Linux/macOS substitute `bin/python` and `bin/aruco-pose` for Windows paths.
+The wheel contains the core library and CLI. ROS examples, print assets and site
+source are in the GitHub checkout/source archive. ROS is installed separately;
+`pip install aruco-pose` does not install ROS.
 
-PyPI release files cannot be overwritten under the same filename. If an upload
-has already succeeded, do not repeatedly upload modified artifacts as 0.2.0:
-choose a new version and rebuild instead. A 404 name check is not a reservation;
-the first successful upload determines whether PyPI accepts the project name.
+## Optional rehearsal and GitHub release
 
-## Optional TestPyPI rehearsal
+TestPyPI has separate accounts/tokens. Rehearse with
+`twine upload --repository testpypi --username __token__` followed by the same two
+artifact paths. This does not publish to production PyPI.
 
-TestPyPI has separate accounts and tokens. To rehearse the same validated files,
-use `twine upload --repository testpypi --username __token__` followed by the two
-exact file paths above. A TestPyPI upload does not publish to production PyPI.
+After verifying production upload, a GitHub release/tag `v0.3.0` can point at the
+tested commit and use [the changelog](../CHANGELOG.md). Tags do not trigger PyPI
+uploads here. Future versions update `setup.py` and `aruco_pose/__init__.py`
+together, then repeat the checks on newly built artifacts.
 
-## GitHub release and future versions
-
-Once upload is verified, create a GitHub release/tag `v0.2.0` pointing at the tested
-commit. A GitHub release does not upload anything to PyPI in this repository.
-For later versions update `setup.py` and `aruco_pose/__init__.py` together, rerun
-tests, build/check new files and upload those exact filenames.
-
-References: [PyPA packaging guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/),
-[PyPI account tokens](https://pypi.org/help/#apitoken),
-[Trusted Publishing](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/).
+References: [PyPA guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/),
+[PyPI tokens](https://pypi.org/help/#apitoken),
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/).

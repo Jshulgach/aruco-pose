@@ -1,7 +1,7 @@
 # Target pose and TF with ROS 2
 
 An optional Python node for **ROS 2 Jazzy on Ubuntu 24.04**. It reads a video or
-local camera through OpenCV, or raw ROS `sensor_msgs/Image` and `CameraInfo` topics,
+local camera through OpenCV, or raw/rectified ROS `sensor_msgs/Image` and `CameraInfo` topics,
 and uses the same `Tracker` as the CLI. No ROS packages are imported by the core
 `aruco_pose` library. File replay remains available without a ROS camera driver.
 
@@ -132,20 +132,21 @@ and transient-local. Do not use that flag with a volatile or best-effort publish
 
 Image subscription QoS is **best effort, volatile, keep-last 1**; CameraInfo is
 **best effort, volatile, keep-last 8** by default, accepting best-effort or reliable
-publishers. The optional retained-info mode instead requests reliable durability
+publishers. The optional retained-info mode requests reliable, transient-local QoS
 as described above. Slow processing drops queued images instead
 of building an unbounded backlog. Unlike file replay, this mode does not promise
 to process every published image. Pose/status output QoS remains reliable depth 1.
 
 ### Supported pixels and calibration
 
-Use **uncompressed, raw, unrectified** Image messages with `mono8`, `bgr8`, `rgb8`,
+Use **uncompressed** Image messages with `mono8`, `bgr8`, `rgb8`,
 `bgra8` or `rgba8` encoding. Row padding (`step`) is respected; RGB/RGBA are converted
 to BGR. Single-byte channels are independent of byte order. There is no cv_bridge
 dependency. Bayer, 16-bit, floating-point and CompressedImage inputs need upstream
-conversion to a supported unrectified Image stream.
+conversion to a supported Image stream. Select the pixel geometry explicitly:
+`--image-space raw` (the default) or `--image-space rectified`.
 
-Calibration uses **K and D**, as defined by the official
+Raw mode uses **K and D**, as defined by the official
 [CameraInfo message](https://github.com/ros2/common_interfaces/blob/jazzy/sensor_msgs/msg/CameraInfo.msg).
 Supported distortion models are calibrated `plumb_bob` (5 coefficients) and
 `rational_polynomial` (8). A zero focal length, nonfinite calibration, unsupported
@@ -154,10 +155,53 @@ and no pose/TF. Input size must match CameraInfo width/height exactly.
 
 This version rejects active cropping/ROI and binning greater than 1. It accepts
 zero/default or full-image ROI with `do_rectify=false`, and binning 0/1. It does
-not adjust intrinsics, resize pixels, use P, or rectify images implicitly. Do not
-point it at `image_rect` with the raw K/D; rectified and fisheye input require a
-separate explicit geometry path. If a driver has already adjusted its intrinsics
+not adjust intrinsics, resize pixels or rectify images implicitly. Do not
+point raw mode at `image_rect`. If a driver has already adjusted its intrinsics
 for a smaller full image, publish matching dimensions/K with no active ROI/binning.
+
+### Rectified image topics
+
+For pixels already rectified by your camera driver or `image_proc`, select:
+
+```bash
+python examples/ros2/target_pose_node.py \
+  --image-topic /camera/image_rect \
+  --camera-info-topic /camera/camera_info \
+  --camera-frame camera_color_optical_frame \
+  --image-space rectified --model assets/dodecahedron/model.json
+```
+
+The mode is never inferred from a topic name. Pairing, QoS, acquisition timestamps
+and freshness checks are the same as raw mode. Do not pass this flag for the
+OpenCV `--source` replay: that path continues to use its supplied calibration JSON.
+
+Rectified pixels use **P's left 3x3 intrinsics and zero distortion**, not K and D.
+K must still identify a calibrated camera (nonzero valid focal lengths). P must
+be finite, with positive focal lengths, zero skew and bottom row `[0,0,1,0]`.
+R must be a finite proper rotation: `R.T @ R` and its determinant are checked
+within `1e-6`. Zero/default R is rejected; publish the actual R, including an
+explicit identity for a camera with no rectification rotation. Raw D is not applied
+again, even if it is nonzero or describes an upstream fisheye camera. Raw fisheye
+pixels remain unsupported; an upstream calibrated pinhole rectification is required.
+
+**Published pose and TF remain in the original optical frame named in the headers.**
+PnP first estimates the target in virtual rectified coordinates. The node applies
+`R.T` to both its rotation and translation before publication. It also transforms
+candidate poses, while retaining the untransformed prior in the internal rectified
+frame. Changes to R reset that prior, even when P's intrinsics do not change.
+No virtual rectified TF frame is published or silently substituted for the header.
+
+Finite `P[0,3]` / `P[1,3]` stereo offsets are not added to/subtracted from this
+camera-local pose: they describe projection from a shared stereo reference origin,
+not the camera's mounting transform. This matches OpenCV's rectification maps,
+which use P's left 3x3. To express a target in another camera or robot frame,
+use the independently calibrated mounting TF. See the
+[CameraInfo specification](https://github.com/ros2/common_interfaces/blob/jazzy/sensor_msgs/msg/CameraInfo.msg)
+and [OpenCV implementation](https://github.com/opencv/opencv/blob/4.x/modules/calib3d/src/undistort.dispatch.cpp).
+
+ROI/cropping/binning restrictions remain in effect for rectified mode; there is
+no implicit reduced-resolution CameraInfo adjustment. Image dimensions must match
+CameraInfo, and Image/CameraInfo frame names must both match `--camera-frame`.
 
 ### Acquisition time, clocks and timeout
 

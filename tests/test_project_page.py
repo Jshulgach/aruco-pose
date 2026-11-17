@@ -6,6 +6,7 @@ import json
 import pytest
 
 from scripts.build_project_page import build_page, validate_page
+from aruco_pose import __version__
 
 
 def test_project_page_builds_with_valid_local_links(tmp_path):
@@ -19,6 +20,7 @@ def test_project_page_builds_with_valid_local_links(tmp_path):
     assert "Synthetic" in html or "synthetic" in html
     assert "pip install aruco-pose" in html
     assert "https://pypi.org/project/aruco-pose/" in html
+    assert f"SOURCE {__version__}" in html
     with zipfile.ZipFile(output / "downloads/starter-kit.zip") as archive:
         names = archive.namelist()
         assert "starter/tracking.mp4" in names and "starter/board.json" in names

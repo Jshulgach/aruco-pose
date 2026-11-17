@@ -14,11 +14,12 @@ long_description = re.sub(
 
 setup(
     name="aruco-pose",
-    version="0.2.0",
-    license="Apache-2.0",
+    version="0.3.0",
+    license_expression="Apache-2.0",
+    license_files=["LICENSE"],
     author="Jonathan Shulgach",
     author_email="jshulgac@andrew.cmu.edu",
-    description="A robust toolkit for ArUco marker detection, pose estimation, and custom 3D model tracking",
+    description="Print, calibrate and track rigid ArUco targets with a shared pose API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Jshulgach/aruco-pose",
@@ -29,7 +30,6 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Image Recognition",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",

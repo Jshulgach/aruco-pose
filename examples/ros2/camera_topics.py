@@ -1,10 +1,11 @@
-"""Bounded raw Image/CameraInfo input for the optional ROS node."""
+"""Bounded raw or rectified Image/CameraInfo input for the optional ROS node."""
 
 from collections import OrderedDict
 import math
 import time
 
 import cv2
+import numpy as np
 from rclpy.clock import Clock, ClockType
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from sensor_msgs.msg import Image, CameraInfo
@@ -15,6 +16,8 @@ from camera_input import (
     check_image_time,
     decode_image,
     raw_calibration,
+    rectified_calibration,
+    original_camera_result,
     stamp_ns,
 )
 
@@ -23,6 +26,9 @@ class TopicInput:
     def __init__(self, node, args):
         self.node = node
         self.policy = args.camera_info_policy
+        self.image_space = getattr(args, "image_space", "raw")
+        if self.image_space not in ("raw", "rectified"):
+            raise ValueError("Image space must be raw or rectified")
         self.max_age = args.max_image_age
         self.future_tolerance = args.future_tolerance
         self.timeout = args.image_timeout
@@ -64,7 +70,7 @@ class TopicInput:
             0.1, self.watchdog, clock=Clock(clock_type=ClockType.STEADY_TIME)
         )
         node.get_logger().info(
-            f"Raw Image={args.image_topic}; CameraInfo={args.camera_info_topic}; pairing={self.policy}; optical frame={node.parent}"
+            f"{self.image_space} Image={args.image_topic}; CameraInfo={args.camera_info_topic}; pairing={self.policy}; output optical frame={node.parent}"
         )
 
     def invalid(self, state, reason, image=None, index=None):
@@ -155,12 +161,24 @@ class TopicInput:
                 self.max_age,
                 self.future_tolerance,
             )
-            matrix, distortion, size = raw_calibration(info, self.node.parent)
+            if self.image_space == "rectified":
+                matrix, distortion, size, rectification = rectified_calibration(
+                    info, self.node.parent
+                )
+            else:
+                matrix, distortion, size = raw_calibration(info, self.node.parent)
+                rectification = np.eye(3)
             if (image.width, image.height) != size:
                 raise ValueError(
                     "Image resolution differs from CameraInfo; no implicit resizing"
                 )
-            fingerprint = (matrix.tobytes(), distortion.tobytes(), size)
+            fingerprint = (
+                matrix.tobytes(),
+                distortion.tobytes(),
+                size,
+                rectification.tobytes(),
+                self.image_space,
+            )
             if self.fingerprint != fingerprint:
                 self.node.previous = None
                 self.node.tracker = Tracker(
@@ -168,7 +186,11 @@ class TopicInput:
                     matrix,
                     distortion,
                     config=TrackerConfig(min_markers=self.min_markers),
-                    parent_frame=self.node.parent,
+                    parent_frame=(
+                        self.node.parent
+                        if self.image_space == "raw"
+                        else self.node.parent + "_rectified_internal"
+                    ),
                     child_frame=self.node.child,
                     image_size=size,
                 )
@@ -185,6 +207,8 @@ class TopicInput:
                 self.future_tolerance,
             )
             self.node.previous = result if result.pose is not None else None
+            if self.image_space == "rectified":
+                result = original_camera_result(result, rectification, self.node.parent)
             self.node.publish(
                 result,
                 image.header.stamp,
@@ -192,6 +216,8 @@ class TopicInput:
                 frame_index=index,
                 extra_values={
                     "camera_info_policy": self.policy,
+                    "image_space": self.image_space,
+                    "pose_axes": "original CameraInfo optical frame",
                     "calibration_stamp_sec": str(info.header.stamp.sec),
                     "calibration_stamp_nanosec": str(info.header.stamp.nanosec),
                 },

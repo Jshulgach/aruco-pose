@@ -3,7 +3,7 @@ aruco-pose: rigid marker pose estimation
 A robust toolkit for ArUco marker detection, pose estimation, and custom 3D model tracking.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __author__ = "Jonathan Shulgach"
 
 from .core.detector import UnifiedArucoDetector

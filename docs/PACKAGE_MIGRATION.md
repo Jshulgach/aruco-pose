@@ -1,7 +1,8 @@
 # Package rename: aruco-pose
 
 The distribution is now **aruco-pose** and the Python import package is
-**aruco_pose**. The GitHub repository is now `Jshulgach/aruco-pose`; version 0.2.0 is unchanged.
+**aruco_pose**. The GitHub repository is now `Jshulgach/aruco-pose`. This namespace
+migration shipped as 0.2.0; see the [changelog](../CHANGELOG.md) for current releases.
 See [publishing instructions](PUBLISHING.md) for the initial PyPI upload.
 
 ## Install this checkout

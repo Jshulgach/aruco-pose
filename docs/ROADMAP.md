@@ -75,7 +75,8 @@ real ROS/DDS CI. Raw `Image`/`CameraInfo` input preserves acquisition timestamps
 validates matching optical frames and calibration geometry, bounds pending input,
 and reports stale/invalid/missing data. Exact and latest calibration pairing,
 sensor-data QoS, and externally supplied simulated time are supported. Core
-Python stays ROS-free. Rectified/fisheye/ROI/binning input and the separately
+Python stays ROS-free. Explicit rectified input now uses P/R and restores the
+original optical-frame pose. Raw fisheye/ROI/binning input and the separately
 packaged adapter/manipulation integration below remain future work.
 
 **Depends on:** stable pose API and frame conventions.
@@ -133,4 +134,4 @@ that evidence to evaluate the shared API thresholds and design rotation-aware
 filtering and uncertainty tests. The API and synthetic outlier/ambiguity tests
 are now implemented; the ROS replay example is available. Physical validation
 should precede accuracy claims and ROS control integration. Next ROS work includes
-explicit rectified/cropped camera geometry and camera mounting transforms.
+cropped/binned camera geometry and camera mounting transforms.
