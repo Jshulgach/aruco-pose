@@ -1,0 +1,41 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Global Options:
+    Fixed Frame: camera_optical_frame
+    Frame Rate: 30
+    Background Color: 35; 45; 40
+  Displays:
+    - Class: rviz_default_plugins/TF
+      Name: Target TF
+      Enabled: true
+      Show Axes: true
+      Show Names: true
+      Marker Scale: 0.1
+    - Class: rviz_default_plugins/Pose
+      Name: Measured target pose
+      Enabled: true
+      Topic:
+        Value: /aruco_target_tracker/pose
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Depth: 1
+      Shape: Axes
+      Axes Length: 0.05
+      Axes Radius: 0.002
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 0.6
+      Pitch: 0.4
+      Yaw: 0.7
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0.25
+Window Geometry:
+  Width: 1100
+  Height: 800

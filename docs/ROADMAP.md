@@ -66,6 +66,14 @@ users can define a new rigid arrangement without modifying tracker code.
 
 ## 3. ROS 2 adapter and manipulation example
 
+**Initial replay/local-camera example implemented:**
+[ROS 2 Jazzy pose + TF example](../examples/ros2/README.md) publishes measured
+`PoseStamped`, optional dynamic TF and per-frame tracking diagnostics through the
+shared Tracker. It includes the dodecahedron replay, an RViz view, explicit optical
+frames/read-completion timestamps, EOF invalid heartbeats, and real ROS/DDS CI.
+Core Python stays ROS-free. This is a direct OpenCV source example, not yet the
+camera-topic adapter or manipulation integration described below.
+
 **Depends on:** stable pose API and frame conventions.
 
 **Deliver:** a separate optional ROS 2 package subscribing to `Image` and
@@ -119,5 +127,6 @@ accuracy from the synthetic starter video alone.
 Complete one measured real-camera board session and add its replay dataset. Use
 that evidence to evaluate the shared API thresholds and design rotation-aware
 filtering and uncertainty tests. The API and synthetic outlier/ambiguity tests
-are now implemented; physical validation should precede accuracy claims and ROS
-control integration.
+are now implemented; the ROS replay example is available. Physical validation
+should precede accuracy claims and ROS control integration. Next ROS work is
+Image/CameraInfo input with acquisition timestamps and camera mounting transforms.

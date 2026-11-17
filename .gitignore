@@ -5,6 +5,7 @@ frames/
 *.npz
 aruco/
 .venv/
+.venv-ros/
 output/
 .pytest_cache/
 *.egg-info/

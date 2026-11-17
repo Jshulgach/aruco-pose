@@ -4,6 +4,11 @@
 
 # ArUco Pose Estimation Examples
 
+Current shared-API examples: [Python pose API](pose_api_demo.py),
+[printable dodecahedron kit](../docs/DODECAHEDRON_KIT.md), and the optional
+[ROS 2 Jazzy pose + TF replay](ros2/README.md). The older sections below remain
+historical/experimental.
+
 Organized examples demonstrating ArUco marker detection, pose estimation, and advanced tracking techniques.
 
 ## 📁 Directory Structure

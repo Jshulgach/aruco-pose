@@ -43,3 +43,26 @@ jobs:
           name: aruco-pose-distributions
           path: dist/*
           if-no-files-found: error
+
+  ros2:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy-ros-base-noble
+    env:
+      ROS_DOMAIN_ID: "83"
+      ROS_LOCALHOST_ONLY: "1"
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install optional ROS example dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3-venv libgl1 libglib2.0-0 ros-jazzy-tf2-ros ros-jazzy-tf2-msgs ros-jazzy-geometry-msgs ros-jazzy-diagnostic-msgs
+          python3 -m venv --system-site-packages /tmp/aruco-ros-venv
+          /tmp/aruco-ros-venv/bin/python -m pip install -e . pytest
+      - name: Track decoded replay through real ROS publishers and subscribers
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          /tmp/aruco-ros-venv/bin/python -m pytest examples/ros2/test_target_pose_ros.py -q

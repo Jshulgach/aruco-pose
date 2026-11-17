@@ -3,6 +3,7 @@ include docs/POSE_API.md docs/MODEL_SCALING.md docs/PACKAGE_MIGRATION.md docs/RO
 recursive-include aruco_pose *.py
 recursive-include tests *.py
 recursive-include examples *.py *.md
+recursive-include examples/ros2 *.rviz
 recursive-include tools *.py *.md
 recursive-include config *.json
 recursive-include assets/starter *.json *.svg *.csv *.mp4
