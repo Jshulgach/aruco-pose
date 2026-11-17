@@ -2,6 +2,7 @@
 from collections import defaultdict
 import csv
 import json
+import re
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -16,6 +17,16 @@ from scripts.build_dodecahedron_kit import face_layouts, printable_svg
 from scripts.generate_dodecahedron_demo import make_target
 
 KIT = Path(__file__).resolve().parents[1] / "assets/dodecahedron"
+
+
+def test_print_pdf_is_a4_with_intact_byte_offsets():
+    data = (KIT / "faces.pdf").read_bytes()
+    assert data.startswith(b"%PDF-")
+    # Text line-ending conversion corrupts PDF object offsets on Windows.
+    offset = int(re.search(rb"startxref\s+(\d+)", data).group(1))
+    assert data[offset:offset+4] == b"xref"
+    bounds = re.search(rb"/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]", data)
+    assert np.allclose([float(bounds.group(1)), float(bounds.group(2))], np.array([210, 297])*72/25.4)
 
 
 def test_print_has_consistent_edge_pairs_and_one_tab_each():
