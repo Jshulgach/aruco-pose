@@ -47,8 +47,22 @@ def test_print_has_consistent_edge_pairs_and_one_tab_each():
         assert left["vertices"] == right["vertices"][::-1]
         a, b = geometry.vertices[left["vertices"]]
         assert np.isclose(np.linalg.norm(a-b), .025)
-    assert json.loads((KIT / "model.json").read_text()) == model
-    assert json.loads((KIT / "assembly.json").read_text())["faces"] == layouts
+    saved = json.loads((KIT / "model.json").read_text())
+    assert {key: value for key, value in saved.items() if key != "markers"} == {
+        key: value for key, value in model.items() if key != "markers"
+    }
+    assert len(saved["markers"]) == len(model["markers"])
+    for actual, expected in zip(saved["markers"], model["markers"]):
+        assert actual["id"] == expected["id"]
+        # Math-library implementations can differ in their last floating bit.
+        np.testing.assert_allclose(actual["corners_m"], expected["corners_m"], rtol=0, atol=1e-12)
+    saved_layouts = json.loads((KIT / "assembly.json").read_text())["faces"]
+    assert len(saved_layouts) == len(layouts)
+    for actual, expected in zip(saved_layouts, layouts):
+        assert actual["marker_id"] == expected["marker_id"]
+        assert actual["sides"] == expected["sides"]
+        for key in ["polygon_mm", "marker_corners_mm"]:
+            np.testing.assert_allclose(actual[key], expected[key], rtol=0, atol=1e-9)
 
 
 def test_actual_printed_bits_decode_in_the_model_corner_orientation():
