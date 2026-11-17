@@ -29,6 +29,13 @@ needed only for `--preview` or printing SVGs through a browser.
 
 ## Try it without a camera
 
+For a 3D target, try the [dodecahedron print + replay kit](docs/DODECAHEDRON_KIT.md):
+an A4 PDF/SVG with glue tabs and paired edge labels, a matching 25 mm-edge model,
+and a ten-second raw synthetic replay. [Download the complete kit](https://jshulgach.github.io/aruco-pose/downloads/dodecahedron-kit.zip)
+to use it with the published package, or use `assets/dodecahedron/` in this checkout.
+The guide covers both camera-free tracking and assembling/calibrating a physical
+target. The printable model is a prototype; physical accuracy is not yet validated.
+
 The repository includes a 30-view checkerboard clip and a six-second tracking clip
 under `assets/starter/`. They are explicitly **synthetic perspective renders**,
 not evidence of real-world accuracy. No downloads or camera calibration files from

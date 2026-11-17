@@ -2,11 +2,13 @@
 
 Run from the repository root with the development environment. Web encoding also
 requires the optional asset-generation tool: pip install imageio-ffmpeg.
-This model's marker orientations are generated here; they do not describe an
-existing physical target or replace the physical-target config files.
+This layout also drives the printable kit. It is separate from the older
+physical-target config files. Generation writes the raw replay and ground truth
+to assets/dodecahedron as well as the annotated website media to --output.
 """
 import argparse
 from collections import Counter
+import csv
 import json
 from pathlib import Path
 import subprocess
@@ -41,7 +43,9 @@ def make_target():
                             center + half*x + half*y, center - half*x + half*y])
         markers.append({"id": int(marker_id), "corners_m": corners.tolist()})
         normals.append(normal)
-    model = {"object_id": "synthetic_dodecahedron", "units": "meters",
+    model = {"schema_version": 1, "object_id": "dodecahedron_25mm", "units": "meters",
+             "corner_order": "top_left,top_right,bottom_right,bottom_left",
+             "frame": "origin at solid center; fixed axes defined by corners_m; object to camera",
              "dictionary": "DICT_5X5_100", "markers": markers}
     return geometry, model, np.array(normals)
 
@@ -108,13 +112,20 @@ def generate(output, *, fps=24, seconds=10):
     geometry, model, _ = make_target()
     tracker = Tracker(model, K, D, config=TrackerConfig(min_markers=2), image_size=SIZE)
     raw = work / "annotated.mp4"
+    replay_raw = work / "unannotated.mp4"
+    replay_writer = cv2.VideoWriter(str(replay_raw), cv2.VideoWriter_fourcc(*"mp4v"), fps, SIZE)
     writer = cv2.VideoWriter(str(raw), cv2.VideoWriter_fourcc(*"mp4v"), fps, SIZE)
-    if not writer.isOpened():
+    if not writer.isOpened() or not replay_writer.isOpened():
+        writer.release()
+        replay_writer.release()
         raise RuntimeError("Cannot create intermediate video")
     statuses, errors, angle_errors, counts = Counter(), [], [], []
+    truth = []
     try:
         for index in range(fps*seconds):
             frame, rvec, tvec = render_frame(2*np.pi*index/(fps*seconds))
+            replay_writer.write(frame)
+            truth.append([index, index/fps, *tvec, *rvec])
             result = tracker.process(frame, timestamp_s=index/fps)
             statuses[result.status] += 1
             counts.append(len(result.inlier_marker_ids))
@@ -124,10 +135,37 @@ def generate(output, *, fps=24, seconds=10):
             writer.write(annotate(frame, result, geometry))
     finally:
         writer.release()
+        replay_writer.release()
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     video = output / "dodecahedron-demo.mp4"
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(raw), "-an", "-c:v", "libx264", "-crf", "21", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(video)], check=True)
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-ss", "1.5", "-i", str(video), "-frames:v", "1", str(output / "dodecahedron-preview.jpg")], check=True)
+    kit = ROOT / "assets/dodecahedron"
+    kit.mkdir(parents=True, exist_ok=True)
+    subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(replay_raw), "-an", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(kit / "tracking.mp4")], check=True)
+    with (kit / "ground_truth.csv").open("w", newline="", encoding="utf-8") as stream:
+        csv_writer = csv.writer(stream)
+        csv_writer.writerow(["frame", "time_s", "tx_m", "ty_m", "tz_m", "rx_rad", "ry_rad", "rz_rad"])
+        csv_writer.writerows(truth)
+    # Validate the deliverable pixels after both intermediate and H.264 encoding.
+    from aruco_pose.starter import track
+    decoded = track(kit / "tracking.mp4", kit / "model.json", kit / "replay_camera.json", work / "replay.csv")
+    with (work / "replay.csv").open(encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))
+    translation_errors, rotation_errors = [], []
+    for row, reference in zip(rows, truth):
+        if row["status"] == "measured":
+            position = np.array([float(row[key]) for key in ("tx_m", "ty_m", "tz_m")])
+            quaternion = [float(row[key]) for key in ("qx", "qy", "qz", "qw")]
+            translation_errors.append(float(np.linalg.norm(position-reference[2:5])*1000))
+            rotation_errors.append(float(np.degrees((Rotation.from_quat(quaternion).inv()*Rotation.from_rotvec(reference[5:8])).magnitude())))
+    validation = {"synthetic": True, "frames": decoded["frames"],
+                  "statuses": {key: decoded[key] for key in ("measured", "lost", "rejected", "ambiguous")},
+                  "max_translation_error_mm": max(translation_errors) if translation_errors else None,
+                  "max_rotation_error_degrees": max(rotation_errors) if rotation_errors else None,
+                  "note": "Decoded synthetic replay verification; not physical tracking accuracy."}
+    (kit / "replay_validation.json").write_text(json.dumps(validation, indent=2)+"\n", encoding="utf-8")
+    print(json.dumps(validation, indent=2))
     report = {"source": "Entirely synthetic; markers detected from rendered pixels by Tracker.process, without a pose prior.",
               "fps": fps, "seconds": seconds, "frames": fps*seconds, "statuses": dict(statuses),
               "edge_length_m": .025, "marker_size_m": .015,

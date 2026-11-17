@@ -1,0 +1,30 @@
+{
+  "image_width": 960,
+  "image_height": 720,
+  "camera_matrix": [
+    [
+      1500.0,
+      0.0,
+      480.0
+    ],
+    [
+      0.0,
+      1500.0,
+      360.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "distortion_coefficients": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "synthetic": true,
+  "note": "Only for tracking.mp4. Calibrate your own physical camera."
+}

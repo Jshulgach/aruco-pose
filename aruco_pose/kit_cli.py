@@ -16,7 +16,7 @@ def fail_cleanly(function, **kwargs):
 
 @click.group()
 def kit():
-    """Print, calibrate and track a rigid four-marker board. Headless by default."""
+    """Print a starter board, calibrate a camera, and track rigid marker models."""
 
 
 @kit.command("print")

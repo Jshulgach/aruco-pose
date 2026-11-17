@@ -36,10 +36,19 @@ The axes and visible wireframe use the measured pose; ground truth is used only
 to check the result. This generated marker layout is separate from the physical
 target configurations. It does not change the saved physical JSON models.
 
+The downloadable dodecahedron kit is assembled from the explicit file list in
+`scripts/build_project_page.py`, under a `dodecahedron/` ZIP folder. Its source is
+`assets/dodecahedron/`: vector PDF/SVG faces with paired edge labels and tabs,
+matching marker corners, raw synthetic replay, known replay camera, ground truth
+and instructions. The kit works with the published 0.2.0 CLI; it needs no new
+package release. A separate PDF preview and guide link are on the page. See
+`docs/DODECAHEDRON_KIT.md` for assembly, camera/replay commands and regeneration.
+
 To regenerate the ten-second H.264 clip, poster and verification report:
 
 ```powershell
 python -m pip install imageio-ffmpeg
+python -m scripts.build_dodecahedron_kit
 python scripts/generate_dodecahedron_demo.py
 python scripts/build_project_page.py
 ```
@@ -48,6 +57,7 @@ Run this in the development environment (`pip install -e .[dev]`).
 `imageio-ffmpeg` is an optional media-generation tool, not a runtime dependency.
 The report is `site/assets/dodecahedron-demo.json`; its errors measure recovery
 from ideal synthetic images, not accuracy with a physical camera or target.
+To regenerate the print PDF too, install `reportlab` and follow the kit guide.
 
 ## Deploy
 
@@ -58,7 +68,7 @@ manually from Actions. It has no PyPI publishing step.
 
 ## Verification
 
-Tests validate local links, target downloads, the sample ZIP and separate build
+Tests validate local links, target downloads, both sample ZIPs and separate build
 output. Browser QA covers desktop/mobile layout, video decoding/playback, section
 navigation and both copy buttons. Reduced-motion preferences suppress autoplay;
 video controls remain available. Static content and download links work without JS.

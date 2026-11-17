@@ -6,6 +6,7 @@ on:
     paths:
       - "site/**"
       - "assets/starter/**"
+      - "assets/dodecahedron/**"
       - "scripts/build_project_page.py"
       - ".github/workflows/pages.yml"
   workflow_dispatch:

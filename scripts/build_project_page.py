@@ -7,6 +7,11 @@ from urllib.parse import unquote, urlparse
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+DODECAHEDRON_FILES = (
+    "README.md", "LICENSE", "faces.svg", "faces.pdf", "model.json", "assembly.json",
+    "checkerboard.svg", "tracking.mp4", "replay_camera.json", "ground_truth.csv",
+    "replay_validation.json",
+)
 
 
 class PageReferences(HTMLParser):
@@ -60,6 +65,11 @@ def build_page(output):
         for path in sorted((ROOT / "assets" / "starter").iterdir()):
             if path.is_file() and path.suffix in {".mp4", ".json", ".svg", ".csv"}:
                 archive.write(path, "starter/" + path.name)
+    with zipfile.ZipFile(downloads / "dodecahedron-kit.zip", "w", zipfile.ZIP_DEFLATED) as archive:
+        for name in DODECAHEDRON_FILES:
+            archive.write(ROOT / "assets/dodecahedron" / name, "dodecahedron/" + name)
+    for name in ["faces.pdf", "README.md"]:
+        shutil.copyfile(ROOT / "assets/dodecahedron" / name, downloads / ("dodecahedron-" + name))
     (output / ".nojekyll").write_text("", encoding="utf-8")
     validate_page(output)
     return output

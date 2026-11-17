@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "frames": 240,
+  "statuses": {
+    "measured": 240,
+    "lost": 0,
+    "rejected": 0,
+    "ambiguous": 0
+  },
+  "max_translation_error_mm": 0.690143681533947,
+  "max_rotation_error_degrees": 1.0009835340645343,
+  "note": "Decoded synthetic replay verification; not physical tracking accuracy."
+}

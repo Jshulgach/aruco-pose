@@ -361,7 +361,7 @@ def track(
                         writer.write(frame)
                 frame_index += 1
                 if preview:
-                    cv2.imshow("Starter board tracking", frame)
+                    cv2.imshow("Rigid target tracking", frame)
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
     finally:

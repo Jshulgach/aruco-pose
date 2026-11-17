@@ -1,6 +1,7 @@
 """The published site must be self-contained and use only synthetic demo media."""
 from pathlib import Path
 import zipfile
+import json
 
 import pytest
 
@@ -21,6 +22,16 @@ def test_project_page_builds_with_valid_local_links(tmp_path):
     with zipfile.ZipFile(output / "downloads/starter-kit.zip") as archive:
         names = archive.namelist()
         assert "starter/tracking.mp4" in names and "starter/board.json" in names
+        assert not any("WIN_20250404" in name or name.endswith(".npy") for name in names)
+    with zipfile.ZipFile(output / "downloads/dodecahedron-kit.zip") as archive:
+        names = archive.namelist()
+        assert len(names) == 11
+        assert "dodecahedron/LICENSE" in names
+        assert "dodecahedron/faces.pdf" in names
+        assert "dodecahedron/README.md" in names
+        model = json.loads(archive.read("dodecahedron/model.json"))
+        assert len(model["markers"]) == 12
+        assert archive.read("dodecahedron/tracking.mp4") != (output / "assets/dodecahedron-demo.mp4").read_bytes()
         assert not any("WIN_20250404" in name or name.endswith(".npy") for name in names)
 
 
