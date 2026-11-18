@@ -36,6 +36,15 @@ The axes and visible wireframe use the measured pose; ground truth is used only
 to check the result. This generated marker layout is separate from the physical
 target configurations. It does not change the saved physical JSON models.
 
+The dodecahedron is also the lead README/site demonstration. The README embeds
+`site/assets/dodecahedron-tracking.gif` through the public Pages asset URL; it is
+a 640 x 480, 12 FPS, ten-second looping conversion of the annotated synthetic MP4.
+The website uses the H.264 video in its hero so playback controls and reduced-motion
+preferences remain available. The generator recreates the GIF alongside the MP4
+and poster. This new synthetic GIF is unrelated to the older personal camera GIF.
+Describe multi-face geometric support and the fixed target origin; physical
+jitter reduction has not been benchmarked, and no temporal smoothing is shown.
+
 The downloadable dodecahedron kit is assembled from the explicit file list in
 `scripts/build_project_page.py`, under a `dodecahedron/` ZIP folder. Its source is
 `assets/dodecahedron/`: vector PDF/SVG faces with paired edge labels and tabs,

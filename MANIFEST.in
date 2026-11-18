@@ -13,4 +13,4 @@ include assets/dodecahedron/LICENSE
 include docs/DODECAHEDRON_KIT.md docs/PROJECT_PAGE.md
 global-exclude __pycache__ *.py[cod] desktop.ini
 recursive-include scripts *.py
-recursive-include site *.html *.css *.js *.svg *.jpg *.mp4 *.json
+recursive-include site *.html *.css *.js *.svg *.jpg *.mp4 *.gif *.json

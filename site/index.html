@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Turn printed markers into usable 3D poses. An open-source Python toolkit for camera calibration, rigid-object tracking and honest pose diagnostics.">
   <meta name="theme-color" content="#203e34">
-  <meta property="og:title" content="aruco-pose — Turn paper into pose.">
-  <meta property="og:description" content="Print. Calibrate. Track. A practical, open-source toolkit for rigid marker targets.">
+  <meta property="og:title" content="aruco-pose — Many faces. One pose.">
+  <meta property="og:description" content="Track one 3D reference point using the visible markers on a dodecahedron. Print, calibrate and replay.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jshulgach.github.io/aruco-pose/">
-  <meta property="og:image" content="https://jshulgach.github.io/aruco-pose/assets/preview.jpg">
+  <meta property="og:image" content="https://jshulgach.github.io/aruco-pose/assets/dodecahedron-preview.jpg">
   <link rel="canonical" href="https://jshulgach.github.io/aruco-pose/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
-  <title>aruco-pose — Turn paper into pose.</title>
+  <title>aruco-pose — Many faces. One pose.</title>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -29,21 +29,21 @@
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> OPEN SOURCE · PYTHON · APACHE 2.0</p>
-        <h1 id="hero-title">Turn paper<br>into <em>pose.</em></h1>
-        <p class="hero-description">A practical toolkit for turning printed markers into a useful reference frame. Calibrate a camera, track a rigid object, and take its 3D pose into your next experiment.</p>
-        <div class="hero-actions"><a class="button primary" href="#start">Try the starter kit <span aria-hidden="true">↘</span></a><a class="text-link" href="https://github.com/Jshulgach/aruco-pose#readme">Read the docs <span aria-hidden="true">↗</span></a></div>
+        <h1 id="hero-title">Many faces.<br>One <em>pose.</em></h1>
+        <p class="hero-description">Track one 3D reference point from the markers visible on a dodecahedron. Fit their known geometry to one object pose, so the estimate is less dependent on any single marker or face.</p>
+        <div class="hero-actions"><a class="button primary" href="#dodecahedron">Try the 3D target <span aria-hidden="true">↘</span></a><a class="text-link" href="https://github.com/Jshulgach/aruco-pose#readme">Read the docs <span aria-hidden="true">↗</span></a></div>
         <div class="install"><span class="prompt" aria-hidden="true">$</span><code id="install-command">pip install aruco-pose</code><button class="copy icon-button" type="button" data-copy="install-command" aria-label="Copy pip install command">Copy</button></div>
-        <p class="small-note">A camera is optional. Start with the included synthetic replay.<br><a class="under-link" href="#dodecahedron">Watch the 3D target <span aria-hidden="true">↓</span></a></p>
+        <p class="small-note">Start with the synthetic replay, or print and assemble the target.<br>Physical jitter reduction is not yet benchmarked.</p>
       </div>
       <figure class="hero-figure">
-        <div class="figure-bar"><span><i class="live-dot" aria-hidden="true"></i> RIGID TARGET / CAMERA FRAME</span><span>DEMO 01</span></div>
-        <div class="video-stage"><video id="demo-video" autoplay loop muted playsinline controls preload="metadata" poster="assets/preview.jpg" aria-label="Synthetic four-marker board tracking demo"><source src="assets/tracking-demo.mp4" type="video/mp4">Your browser cannot play this video. <a href="assets/tracking-demo.mp4">Download the demo.</a></video></div>
-        <figcaption><span class="figure-caption-title">One object. Several observations.</span><span>Annotated synthetic replay · 6 seconds · no camera footage</span></figcaption>
+        <div class="figure-bar"><span><i class="live-dot" aria-hidden="true"></i> MULTI-FACE TARGET / ONE OBJECT FRAME</span><span>3D TRACKING</span></div>
+        <div class="video-stage"><video id="demo-video" autoplay loop muted playsinline controls preload="metadata" poster="assets/dodecahedron-preview.jpg" aria-label="Synthetic dodecahedron tracking with multiple visible markers"><source src="assets/dodecahedron-demo.mp4" type="video/mp4">Your browser cannot play this video. <a href="assets/dodecahedron-demo.mp4">Download the demo.</a></video></div>
+        <figcaption><span class="figure-caption-title">Changing faces. One reference point.</span><span>Synthetic replay · 25 mm edges · no camera footage</span></figcaption>
       </figure>
     </section>
 
     <div class="facts wrap" aria-label="Starter kit at a glance">
-      <div><strong>6 DoF</strong><span>Position + orientation</span></div><div><strong>4 markers</strong><span>One printable rigid target</span></div><div><strong>Every frame</strong><span>A pose or an explicit status</span></div><div><strong>Your workflow</strong><span>Python API + CLI + CSV</span></div>
+      <div><strong>One origin</strong><span>Target center + orientation</span></div><div><strong>12 faces</strong><span>One known rigid layout</span></div><div><strong>Visible support</strong><span>Multiple markers, one pose</span></div><div><strong>Your workflow</strong><span>Python + CSV + ROS 2</span></div>
     </div>
 
     <section id="workflow" class="workflow wrap section" aria-labelledby="workflow-title">

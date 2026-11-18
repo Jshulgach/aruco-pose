@@ -140,6 +140,10 @@ def generate(output, *, fps=24, seconds=10):
     video = output / "dodecahedron-demo.mp4"
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(raw), "-an", "-c:v", "libx264", "-crf", "21", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(video)], check=True)
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-ss", "1.5", "-i", str(video), "-frames:v", "1", str(output / "dodecahedron-preview.jpg")], check=True)
+    # GitHub READMEs can display GIFs directly, unlike autoplay MP4 embeds.
+    subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(video),
+        "-filter_complex", "fps=12,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle",
+        "-loop", "0", str(output / "dodecahedron-tracking.gif")], check=True)
     kit = ROOT / "assets/dodecahedron"
     kit.mkdir(parents=True, exist_ok=True)
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(replay_raw), "-an", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(kit / "tracking.mp4")], check=True)
