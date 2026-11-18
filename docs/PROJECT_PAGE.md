@@ -84,3 +84,9 @@ video controls remain available. Static content and download links work without 
 
 Keep accuracy claims tied to measured evidence. The replay is synthetic; ROS 2,
 docking and navigation adapters remain roadmap work rather than present features.
+
+The public landing page uses a dark robotics-lab theme with a coordinate grid,
+cyan accents and frame/unit labels. The dodecahedron replay leads the page;
+three entry cards route visitors to the printable kit, Python API and ROS 2.
+The frame labels describe conventions, not live telemetry. All assets are served
+locally; the page needs no external fonts or JavaScript libraries.
