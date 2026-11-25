@@ -1,52 +1,22 @@
 # aruco-pose
 
+<p align="center">
+  <a href="https://jshulgach.github.io/aruco-pose/#dodecahedron">
+    <img src="site/assets/dodecahedron-tracking.gif" alt="Synthetic dodecahedron tracking with a shared 3D reference frame" width="640">
+  </a>
+  <br><em>Synthetic replay.</em>
+</p>
+
 [![Tests](https://github.com/Jshulgach/aruco-pose/actions/workflows/ci.yml/badge.svg)](https://github.com/Jshulgach/aruco-pose/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/aruco-pose?color=203b32)](https://pypi.org/project/aruco-pose/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-62736b)](LICENSE)
 
-**One 3D target. Many markers. One reference point.**
+Estimate a dodecahedron’s 3D position and orientation from its visible ArUco
+markers, using one shared object frame and a calibrated camera.
 
-Track the center of a dodecahedron from the markers visible on its faces.
-`aruco-pose` fits their known 3D corners to **one rigid-object pose**: a position
-and orientation relative to a calibrated camera, rather than a separate,
-independent pose for every marker.
+[Print & try the target](docs/DODECAHEDRON_KIT.md) · [Python API](docs/POSE_API.md) · [ROS 2](examples/ros2/README.md) · [Demos](https://jshulgach.github.io/aruco-pose/)
 
-[![Animated synthetic dodecahedron tracking: different visible faces support one object frame](https://jshulgach.github.io/aruco-pose/assets/dodecahedron-tracking.gif)](https://jshulgach.github.io/aruco-pose/#dodecahedron)
-
-*Synthetic replay, with axes and outline drawn from the estimated pose. No temporal
-smoothing is applied; this is not a measured jitter-reduction or accuracy benchmark.*
-
-Multiple faces give the solver more geometric constraints when one marker is
-small, oblique or partly hidden. The estimate is less dependent on any one marker:
-visible markers support the same object frame, and corner/whole-marker outliers
-can be rejected against a coherent majority. Camera calibration, image quality
-and the number of readable faces still matter.
-
-- **Track one spatial point:** the target center, with a fixed set of object axes.
-- **Keep one frame across face changes:** marker IDs change as the target turns;
-  the modeled object origin does not.
-- **Inspect the measurement:** inlier markers, reprojection error and explicit
-  lost/rejected/ambiguous status, rather than an old pose presented as new.
-
-[**Print the dodecahedron or try its camera-free replay →**](docs/DODECAHEDRON_KIT.md)
-
-Use the same pose through Python, CSV, or the optional ROS 2 example with stamped
-poses, TF and tracking status. Flat marker boards remain supported too.
-
-[Project page & demos](https://jshulgach.github.io/aruco-pose/) · [API guide](docs/POSE_API.md) · [ROS 2 guide](examples/ros2/README.md) · [0.3.0 changelog](CHANGELOG.md)
-
-| Start here | What you get |
-| --- | --- |
-| [Dodecahedron kit](docs/DODECAHEDRON_KIT.md) | A4 print sheet, assembly guide, matching model and 3D replay |
-| [Camera-free starter](#try-it-without-a-camera) | Calibration video, four-marker board, tracking and CSV |
-| [Python API](#shared-python-pose-api) | Rigid-target pose, outlier rejection and explicit ambiguity/loss |
-| [ROS 2 Jazzy](examples/ros2/README.md) | Raw or rectified Image/CameraInfo, acquisition-time pose, TF and diagnostics |
-
-*Source release: 0.3.0; the PyPI badge above shows the version currently published.*
-
-The core requires Python 3.9+. CI exercises Windows/Linux with Python 3.11;
-ROS integration uses Jazzy's system Python 3.12 on Ubuntu 24.04. Physical camera
-accuracy and all GUI/platform combinations have not been validated.
+Python 3.9+ for the core package. ROS 2 Jazzy is optional.
 
 ## Install
 
